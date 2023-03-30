@@ -63,25 +63,24 @@ def main():
         
 
         plot_data = aapl[aapl.index >= '2020-01-01']
-        plot_data.rename(columns={'datetime':'timestamp'}, inplace=True)
         st.write(plot_data)
 
         st.write('AAPL STOCK PRICES')
         chart4 = px.line()
-        chart4.add_scatter(x=plot_data['timestamp'], y=plot_data['close'], mode='lines', line_color = 'blue', name = 'Close')
+        chart4.add_scatter(x=plot_data['datetime'], y=plot_data['close'], mode='lines', line_color = 'blue', name = 'Close')
         st.write(chart4)
 
         st.write(f'AAPL STOCH 14,3')
         chart5 = px.line()
-        chart5.add_scatter(x=plot_data['timestamp'], y=plot_data['%k'], mode='lines', line_color = 'blue', name = '%K')
-        chart5.add_scatter(x=plot_data['timestamp'], y=plot_data[f"%d"], mode='lines', line_color = 'orange', name = "%D")
+        chart5.add_scatter(x=plot_data['datetime'], y=plot_data['%k'], mode='lines', line_color = 'blue', name = '%K')
+        chart5.add_scatter(x=plot_data['datetime'], y=plot_data[f"%d"], mode='lines', line_color = 'orange', name = "%D")
         st.write(chart5)
 
         st.write('AAPL MACD 26,12,9')
         chart = px.line()
-        chart.add_scatter(x=plot_data['timestamp'], y=plot_data['macd'], mode='lines', line_color = 'blue', name = 'macd')
-        chart.add_scatter(x=plot_data['timestamp'], y=plot_data['macd_signal'], mode='lines', line_color = 'orange', name = "signal")
-        chart.add_scatter(x=plot_data['timestamp'], y=plot_data['macd_hist'], mode='lines', line_color = 'violet', name = "hist")
+        chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd'], mode='lines', line_color = 'blue', name = 'macd')
+        chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd_signal'], mode='lines', line_color = 'orange', name = "signal")
+        chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd_hist'], mode='lines', line_color = 'violet', name = "hist")
         st.write(chart)
 
         st.write("Momentum Strategy")
