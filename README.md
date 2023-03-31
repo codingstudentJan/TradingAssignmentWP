@@ -1,4 +1,4 @@
-# TraderJoe
+# Trading Assgiment
 
 - You need to have python version 3.10
 and all this dependencies installed:
