@@ -2,11 +2,9 @@ import streamlit as st
 import requests
 import pandas as pd
 import plotly.graph_objs as go
-from plotly.subplots import make_subplots
 from streamlit_option_menu import option_menu
 import plotly.express as px
 import numpy as np
-import matplotlib.pyplot as plt
 from math import floor
 
 
@@ -48,7 +46,7 @@ def main():
         filling_support_resistance_array_with_data(new_df, resistance_levels, support_levels)
 
         print(new_df)
-        new_df.plot(x='timestamp', y='low', kind='line')
+        #new_df.plot(x='timestamp', y='low', kind='line')
         chart = px.line()
         chart.add_scatter(x=new_df['timestamp'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
         chart.add_scatter(x=new_df['timestamp'], y=new_df['high'], mode='lines', line_color='violet',
@@ -250,6 +248,8 @@ def adding_support_resistance_lines(chart, new_df, resistance_levels, support_le
         print(new_df['timestamp'][-1])
         chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['timestamp'][level[1]]),
                         x1=pd.to_datetime(new_df['timestamp'][-1]), line_dash="dash", line_color="green")
+        chart.add_shape(type = "rect",y0=level[0] *0.9997, y1=level[0] *1.00004, x0=pd.to_datetime(new_df['timestamp'][level[1]]),
+                        x1=pd.to_datetime(new_df['timestamp'][-1]),line=dict(color="#90EE90",width=2),fillcolor="rgba(144,238,144,0.2)")
     for level in resistance_levels:
         chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['timestamp'][level[1]]),
                         x1=pd.to_datetime(new_df['timestamp'][-1]), line_dash="dash", line_color="red")
@@ -262,7 +262,7 @@ def filling_support_resistance_array_with_data(new_df, resistance_levels, suppor
             row_number = i
             support_levels.append([low, i])
         elif is_resistance(new_df, i):
-            high = new_df['high'][i]
+            high = new_df['low'][i]
             row_number = i
             resistance_levels.append([high, i])
 

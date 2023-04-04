@@ -1,5 +1,5 @@
+import requests
 from fastapi import FastAPI
-from sqlalchemy.orm import Session
 import uvicorn
 from typing import List
 import datetime
@@ -10,9 +10,7 @@ from alpaca.data.requests import CryptoBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.historical import CryptoHistoricalDataClient
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.dates import date2num
-import requests
+
 
 
 client = CryptoHistoricalDataClient()
@@ -54,7 +52,7 @@ async def create_transaction():
 
 def get_asset_data():
     request_params = CryptoBarsRequest(
-        symbol_or_symbols=["ETH/USD"],
+        symbol_or_symbols=["BTC/USD"],
         timeframe=TimeFrame.Minute,
         start='2023-03-17 15:35:00',
         end='2023-03-17 17:00:00',
