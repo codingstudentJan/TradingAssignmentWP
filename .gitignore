@@ -1,4 +1,9 @@
-# ignore all csv files for commits
-# subject to change with proper prefix
+ # Ignoriere alle Dateien im Ordner venv
+ venv/
 
-*csv
+ # Ignoriere alle .pyc Dateien
+ *.pyc
+
+ # Ignoriere alle .csv Dateien
+ *.csv
+
