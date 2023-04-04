@@ -1,0 +1,4 @@
+# ignore all csv files for commits
+# subject to change with proper prefix
+
+*csv
