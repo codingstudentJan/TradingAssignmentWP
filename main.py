@@ -1,35 +1,26 @@
 import requests
 from fastapi import FastAPI
 import uvicorn
-from typing import List
-import datetime
-
-from alpaca.trading.client import TradingClient
-from alpaca.trading.requests import GetAssetsRequest
 from alpaca.data.requests import CryptoBarsRequest
 from alpaca.data.timeframe import TimeFrame
 from alpaca.data.historical import CryptoHistoricalDataClient
 import pandas as pd
 
-
-
 client = CryptoHistoricalDataClient()
-
 
 API_KEY = "PK9M5LWB3QCIP3WQAYIS"
 SECRET_KEY = "W59ISrRhIAwIG5Ib2k3cMASa0avwfUQxLoDFioqK"
 
-
 app = FastAPI(title="Finance Application",
               description="""Finance Tracker Application \n
     Made by: \n
-    Alina Günther \n
+    Lyle Braunbart \n
     Feni Yuliastutik \n
     Laura Makare \n
+    Dennis Cassady \n
+    Jan Berger
     """,
               version="1.0.0")
-
-
 
 
 @app.post('/investment', tags=["Transaction"], status_code=201)
@@ -50,9 +41,10 @@ async def create_transaction():
         * if the datatype for each attributes is right
     """
 
+
 def get_asset_data():
     request_params = CryptoBarsRequest(
-        symbol_or_symbols=["BTC/USD"],
+        symbol_or_symbols=["ETH/USD"],
         timeframe=TimeFrame.Minute,
         start='2023-03-17 15:35:00',
         end='2023-03-17 17:00:00',
@@ -69,6 +61,7 @@ def get_asset_data():
     new_df = pd.read_csv("asset_info_file.csv")
     return new_df
 
+
 def get_historical_data(symbol, start_date):
     api_key = 'f8f59ed60c3743328f18e9aa36ac1048'
     api_url = f'https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=5000&apikey={api_key}'
@@ -84,7 +77,7 @@ def get_historical_data(symbol, start_date):
     apple_df = pd.read_csv("asset_apple.csv")
 
     return apple_df
-    
+
 
 @app.get('/investment', status_code=200)
 def get_all_transactions():
@@ -106,7 +99,7 @@ def get_all_transactions():
 
 @app.get('/momentum', status_code=200)
 def get_all_transactions():
-    return get_historical_data('AAPL', '2022-01-01')
+  return get_historical_data('AAPL', '2022-01-01')
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8084, reload=True)

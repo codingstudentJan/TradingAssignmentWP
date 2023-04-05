@@ -1,11 +1,12 @@
-import streamlit as st
-import requests
-import pandas as pd
-import plotly.graph_objs as go
-from streamlit_option_menu import option_menu
-import plotly.express as px
-import numpy as np
 from math import floor
+
+import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objs as go
+import requests
+import streamlit as st
+from streamlit_option_menu import option_menu
 
 
 def fetch(session, url):
@@ -46,8 +47,8 @@ def main():
         filling_support_resistance_array_with_data(new_df, resistance_levels, support_levels)
 
         print(new_df)
-        #new_df.plot(x='timestamp', y='low', kind='line')
         chart = px.line()
+        chart.update_layout(title=new_df['symbol'][0], xaxis_title='Timestamp', yaxis_title='Price')
         chart.add_scatter(x=new_df['timestamp'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
         chart.add_scatter(x=new_df['timestamp'], y=new_df['high'], mode='lines', line_color='violet',
                           name='Highest Price')
@@ -241,30 +242,74 @@ strategy = pd.concat(frames, join='inner', axis=1)
 
 # ------------------------------------------------------------------------------
 
-# Resistance and Support Strategy
+# Resistance and Support Indicator
 def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels):
     for level in support_levels:
         print(new_df['timestamp'][level[1]])
         print(new_df['timestamp'][-1])
         chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['timestamp'][level[1]]),
                         x1=pd.to_datetime(new_df['timestamp'][-1]), line_dash="dash", line_color="green")
-        chart.add_shape(type = "rect",y0=level[0] *0.9997, y1=level[0] *1.00004, x0=pd.to_datetime(new_df['timestamp'][level[1]]),
-                        x1=pd.to_datetime(new_df['timestamp'][-1]),line=dict(color="#90EE90",width=2),fillcolor="rgba(144,238,144,0.2)")
+        chart.add_shape(type="rect", y0=level[0] * 0.9996, y1=level[0] * 1.00005,
+                        x0=pd.to_datetime(new_df['timestamp'][level[1]]),
+                        x1=pd.to_datetime(new_df['timestamp'][-1]), line=dict(color="#90EE90", width=2),
+                        fillcolor="rgba(144,238,144,0.2)")
     for level in resistance_levels:
         chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['timestamp'][level[1]]),
                         x1=pd.to_datetime(new_df['timestamp'][-1]), line_dash="dash", line_color="red")
+        chart.add_shape(type="rect", y0=level[0] * 0.9996, y1=level[0] * 1.00005,
+                        x0=pd.to_datetime(new_df['timestamp'][level[1]]),
+                        x1=pd.to_datetime(new_df['timestamp'][-1]), line=dict(color="red", width=2),
+                        fillcolor="rgba(255, 0, 0, 0.2)")
 
 
 def filling_support_resistance_array_with_data(new_df, resistance_levels, support_levels):
     for i in range(2, new_df.shape[0] - 2):
         if is_support(new_df, i):
             low = new_df['low'][i]
-            row_number = i
-            support_levels.append([low, i])
+            if len(support_levels) == 0:
+                support_levels.append([low, i])
+
+            elif len(support_levels) > 0:
+                found_support: bool = False
+                found_resistance: bool = False
+                found_support = checking_for_supports_or_resistances(i, new_df, found_support, support_levels, 'low')
+                found_resistance = checking_for_supports_or_resistances(i, new_df, found_resistance,
+                                                                        resistance_levels, 'low')
+                if found_support or found_resistance:
+                    continue
+
+                else:
+                    if [low, i] not in support_levels:
+                        support_levels.append([low, i])
         elif is_resistance(new_df, i):
-            high = new_df['low'][i]
-            row_number = i
-            resistance_levels.append([high, i])
+            high = new_df['high'][i]
+            if len(resistance_levels) == 0:
+                resistance_levels.append([high, i])
+            elif len(resistance_levels) > 0:
+                found_support: bool = False
+                found_resistance: bool = False
+                found_support = checking_for_supports_or_resistances(i, new_df, found_support, support_levels, 'high')
+                found_resistance = checking_for_supports_or_resistances(i, new_df, found_resistance,
+                                                                        resistance_levels, 'high')
+                if found_support or found_resistance:
+                    continue
+                else:
+                    if [high, i] not in resistance_levels:
+                        resistance_levels.append([high, i])
+    print("Final Support List", support_levels)
+    print("Final Reistance List", resistance_levels)
+
+
+def checking_for_supports_or_resistances(i, new_df, found, levels, extremes: str):
+    for j in range(0, len(levels)):
+        if (levels[j][0] * 0.9996 <= new_df[extremes][i] <= levels[j][0] * 1.00005) or \
+                (levels[j][0] * 0.9996 <= new_df[extremes][i] * 0.9996 <= levels[j][
+                    0] * 1.00005) or \
+                (levels[j][0] * 0.9996 <= new_df[extremes][i] * 1.00005 <= levels[j][
+                    0] * 1.00005):
+            found = True
+            break
+    return found
 
 
 def is_support(new_df, i: int):
