@@ -1,0 +1,14 @@
+ # Ignoriere alle Dateien im Ordner venv
+ venv/
+
+ # Ignoriere alle .pyc Dateien
+ *.pyc
+
+ # Ignoriere alle .csv Dateien
+ *.csv
+
+*.csv
+*.pyc
+asset_info_file.csv
+asset_apple.csv
+__pycache__/main.cpython-311.pyc
