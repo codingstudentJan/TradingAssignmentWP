@@ -1,0 +1,13 @@
+/* Importieren Sie das Bootstrap-Stylesheet */
+@import url('https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css');
+
+/* Definieren Sie Ihre eigene CSS-Klasse mit Bootstrap-Klassen */
+span {
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    /* Verwenden Sie die Bootstrap-Klasse "text-uppercase" */
+    letter-spacing: 2px;
+    /* Verwenden Sie die Bootstrap-Klasse "text-primary" */
+    color: #007bff;
+}

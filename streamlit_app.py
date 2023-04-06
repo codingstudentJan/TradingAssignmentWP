@@ -1,4 +1,5 @@
 from math import floor
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -18,15 +19,18 @@ def fetch(session, url):
 
 
 session = requests.Session()
-sample_data = fetch(session, "http://127.0.0.1:8084/investment")
+
+crypto = fetch(session, "http://127.0.0.1:8084/cryptos")
 momentum_data = fetch(session, "http://127.0.0.1:8084/momentum")
 aapl = pd.DataFrame(momentum_data)
 
 
 def main():
+    with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     # Navigation Bar
     with st.sidebar:
-        choose = option_menu("Indicators", ["Support and Resistance", "Bowling", "Momentum", "Balance", "Bollinger"],
+        choose = option_menu("Indicators", ["Support and Resistance", "Momentum", "Bollinger"],
                              icons=['pencil-fill', 'bar-chart-fill', 'bookmarks-fill', 'piggy-bank-fill',
                                     'pencil-fill'],
                              menu_icon="coin", default_index=0,
@@ -41,6 +45,12 @@ def main():
 
     if choose == "Support and Resistance":
         st.title("Support and Resistance")
+        option = st.selectbox(
+            'Which Stock would you like to trade?',
+            ("AAPL","AMZN", "GOOGL", "GS","META", "MSFT","NKE","PFE","PG", "TSLA", "WMT"))
+        option = option.replace("/", "-")
+        sample_data = fetch(session, f"http://127.0.0.1:8084/investment/{option}")
+        st.write('You selected:', option)
         new_df = pd.DataFrame(sample_data)
         support_levels = []
         resistance_levels = []
@@ -48,16 +58,14 @@ def main():
 
         print(new_df)
         chart = px.line()
-        chart.update_layout(title=new_df['symbol'][0], xaxis_title='Timestamp', yaxis_title='Price')
-        chart.add_scatter(x=new_df['timestamp'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
-        chart.add_scatter(x=new_df['timestamp'], y=new_df['high'], mode='lines', line_color='violet',
+        chart.update_layout(title= option, xaxis_title='Date', yaxis_title='Price')
+        chart.add_scatter(x=new_df['datetime'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
+        chart.add_scatter(x=new_df['datetime'], y=new_df['high'], mode='lines', line_color='violet',
                           name='Highest Price')
         adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels)
         st.write(chart)
 
 
-    elif choose == "Bowling":
-        st.title("Expenses")
 
 
     elif choose == "Momentum":
@@ -115,11 +123,10 @@ def main():
             'Profit gained from the STOCH MACD strategy by investing $100k in AAPL : {}'.format(total_investment_ret))
         st.write('Profit percentage of the STOCH MACD strategy : {}%'.format(profit_percentage))
 
-    elif choose == "Balance":
-        st.title("Transaction Details")
 
     elif choose == "Bollinger":
         st.title("Bollinger Bands Breakout")
+        sample_data = fetch(session, f"http://127.0.0.1:8084/investment/ETH-USD")
         df = pd.DataFrame(sample_data)
         rolling_mean, upper_band, lower_band = calc_bollinger_bands(df)
 
@@ -245,20 +252,20 @@ strategy = pd.concat(frames, join='inner', axis=1)
 # Resistance and Support Indicator
 def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels):
     for level in support_levels:
-        print(new_df['timestamp'][level[1]])
-        print(new_df['timestamp'][-1])
-        chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['timestamp'][level[1]]),
-                        x1=pd.to_datetime(new_df['timestamp'][-1]), line_dash="dash", line_color="green")
+        print(new_df['datetime'][level[1]])
+        print(new_df['datetime'][-1])
+        chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                        x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="green")
         chart.add_shape(type="rect", y0=level[0] * 0.9996, y1=level[0] * 1.00005,
-                        x0=pd.to_datetime(new_df['timestamp'][level[1]]),
-                        x1=pd.to_datetime(new_df['timestamp'][-1]), line=dict(color="#90EE90", width=2),
+                        x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                        x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="#90EE90", width=2),
                         fillcolor="rgba(144,238,144,0.2)")
     for level in resistance_levels:
-        chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['timestamp'][level[1]]),
-                        x1=pd.to_datetime(new_df['timestamp'][-1]), line_dash="dash", line_color="red")
+        chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                        x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="red")
         chart.add_shape(type="rect", y0=level[0] * 0.9996, y1=level[0] * 1.00005,
-                        x0=pd.to_datetime(new_df['timestamp'][level[1]]),
-                        x1=pd.to_datetime(new_df['timestamp'][-1]), line=dict(color="red", width=2),
+                        x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                        x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="red", width=2),
                         fillcolor="rgba(255, 0, 0, 0.2)")
 
 
