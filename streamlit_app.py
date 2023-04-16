@@ -71,27 +71,7 @@ def main():
                              )
 
     if choose == "Support and Resistance":
-        def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_factor, up_factor):
-            for level in support_levels:
-                print(new_df['datetime'][level[1]])
-                print(new_df['datetime'][-1])
-                bottom_factor = bottom_factor
-                up_factor = up_factor
-                chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="green")
-                chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
-                                x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="#90EE90", width=2),
-                                fillcolor="rgba(144,238,144,0.2)")
-            for level in resistance_levels:
-                chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="red")
-                chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
-                                x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="red", width=2),
-                                fillcolor="rgba(255, 0, 0, 0.2)")
-
-        def filling_support_levels(new_df, support_levels, bottom_factor, up_factor):
+        def filling_support_levels(new_df, support_levels, bottom_factor, up_factor, safe_extrema_number):
             support_copy: List = []
             for i in range(2, new_df.shape[0] - 2):
                 if is_support(new_df, i):
@@ -115,12 +95,12 @@ def main():
             support_levels = []
             print("Leere Support Levels", support_levels)
             for i in range(0, len(support_copy)):
-                if support_copy[i][2] >= 3:
+                if support_copy[i][2] >= safe_extrema_number:
                     support_levels.append(support_copy[i])
             print("Support Levels danach", support_levels)
             return support_levels
 
-        def filling_resistance_levels(new_df, resistance_levels, bottom_factor, up_factor):
+        def filling_resistance_levels(new_df, resistance_levels, bottom_factor, up_factor, safe_extrema_number):
             resistance_copy: List = []
             for i in range(2, new_df.shape[0] - 2):
                 if is_resistance(new_df, i):
@@ -144,7 +124,7 @@ def main():
             resistance_levels = []
             print("Leere Support Levels", resistance_levels)
             for i in range(0, len(resistance_copy)):
-                if resistance_copy[i][2] >= 3:
+                if resistance_copy[i][2] >= safe_extrema_number:
                     resistance_levels.append(resistance_copy[i])
             print("Resistance Levels danach", resistance_levels)
             return resistance_levels
@@ -185,19 +165,57 @@ def main():
             for resistance in resistances_to_remove:
                 resistance_levels.remove(resistance)
 
+        def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_factor, up_factor):
+            for level in support_levels:
+                print(new_df['datetime'][level[1]])
+                print(new_df['datetime'][-1])
+                bottom_factor = bottom_factor
+                up_factor = up_factor
+                chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="green")
+                chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
+                                x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="#90EE90", width=2),
+                                fillcolor="rgba(144,238,144,0.2)")
+            for level in resistance_levels:
+                chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="red")
+                chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
+                                x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="red", width=2),
+                                fillcolor="rgba(255, 0, 0, 0.2)")
+
+        # Setup of the page and for computation with algorithm
         st.title("Support and Resistance")
         new_df = pd.DataFrame(sample_data)
         support_levels = []
         resistance_levels = []
+
+        # Setting the boundaries (percentage of price found as support/resistance) for rectangle zones of supports
+        # and resistances
+
         bottom_line = 0.9886
         up_line = 1.007
-        support_levels = filling_support_levels(new_df, support_levels, bottom_line, up_line)
-        resistance_levels = filling_resistance_levels(new_df, resistance_levels, bottom_line, up_line)
+
+        safe_extrema_number = st.number_input("Insert Safe Support/Resistance number", value=3, min_value=3,
+                                              max_value=5, step=1,
+                                              help="This number should help you add or remove supports and "
+                                                   "resistances, based on how many times they are found in the "
+                                                   "datasaet. This number represents how many times they should be "
+                                                   "found to be sure it is a resistance or a support.")
+
+        # Filling the Arrays with data
+        support_levels = filling_support_levels(new_df, support_levels, bottom_line, up_line, safe_extrema_number)
+        resistance_levels = filling_resistance_levels(new_df, resistance_levels, bottom_line, up_line,
+                                                      safe_extrema_number)
         resistances_to_remove: List = []
         supports_to_remove: List = []
+
+        # Remove duplicates from both Arrays (filtering)
         remove_duplicate_resistances(bottom_line, resistance_levels, resistances_to_remove, support_levels, up_line)
         remove_duplicate_supports(bottom_line, resistance_levels, support_levels, supports_to_remove, up_line)
-        print(new_df)
+
+        # Generating the chart based on the Arrays and the Dataframe
         chart = px.line()
         chart.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
         chart.add_scatter(x=new_df['datetime'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
@@ -397,9 +415,6 @@ def main():
         draw_signals(fig, buy_markers, sell_markers)
         fig.update_layout(title=option, xaxis_title='Timestamp', yaxis_title='Price')
         st.plotly_chart(fig)
-
-
-
 
 
 # ------METHODS--------------------
