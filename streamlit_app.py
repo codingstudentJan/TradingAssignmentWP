@@ -20,49 +20,40 @@ def fetch(session, url):
 
 session = requests.Session()
 
-#dictionary for the categories
+# dictionary for the categories
 stocks_category = {
-    'Stocks Apple' : 'AAPL',
-    'Stocks AMAZON' : 'AMZN',
-    'Stocks GOOGLE' : 'GOOGL',
-    'Stocks GS?' : 'GS',
+    'Stocks Apple': 'AAPL',
+    'Stocks Amazon': 'AMZN',
+    'Stocks Google': 'GOOGL',
+    'Stocks Goldman Sachs': 'GS',
     'Stocks META': 'META',
-    'Stocks MSFT?' : 'MSFT',
-    'Stocks Nike' : 'NKE',
-    'Stocks PFE?' : 'PFE',
-    'Stocks PG?': 'PG',
-    'Stocks Tesla' : 'TSLA',
-    'Stocks WMT?' : 'WMT',
-    'Forex Euro' : 'EUR-USD',
-    'Forex  Gold Spot' : 'XAU-USD',
-    'Crypto Bitcoin' : 'BTC-USD',
-    'Crypto Ethereum' : 'ETH-BTC',
-    'ETF SPDR S&P 500 ETF Trust' : 'SPY',
-    'ETF Vanguard Total Stock Market Index Fund ETF Shares' : 'VTI',
-    'Indices NASDAQ Composite' : 'IXIC',
-    'Indices S&P 500' : 'SPX'
+    'Stocks Microsoft': 'MSFT',
+    'Stocks Nike': 'NKE',
+    'Stocks Pfizer': 'PFE',
+    'Stocks Procter and Gamble': 'PG',
+    'Stocks Tesla': 'TSLA',
+    'Stocks Walmart': 'WMT',
+    'Forex Euro/USD': 'EUR-USD',
+    'Forex  Gold Spot': 'XAU-USD',
+    'Crypto Bitcoin/USD': 'BTC-USD',
+    'Crypto Ethereum/Bitcoin': 'ETH-BTC',
+    'ETF SPDR S&P 500 ETF Trust': 'SPY',
+    'ETF Vanguard Total Stock Market Index Fund ETF Shares': 'VTI',
+    'Indices NASDAQ Composite': 'IXIC',
+    'Indices S&P 500': 'SPX'
 }
 
+
 def main():
-    with open(r"D:\New folder\TraderJoe\style.css") as f:
+    with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
     option = st.selectbox(
-            'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
-            ("Stocks Apple","Stocks AMAZON", "Stocks GOOGLE", "Stocks GS?", 
-             "Stocks META", "Stocks MSFT?", "Stocks Nike","Stocks PFE?",
-             "Stocks PG?", "Stocks Tesla", "Stocks WMT?",
-             'Forex Euro', 'Forex  Gold Spot',
-             'Crypto Bitcoin', 'Crypto Ethereum',
-             'ETF SPDR S&P 500 ETF Trust',
-             'ETF Vanguard Total Stock Market Index Fund ETF Shares',
-             'Indices NASDAQ Composite', 'Indices S&P 500',
-             ))
+        'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
+        stocks_category.keys())
     option = option.replace("/", "-")
     sample_data = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}")
     st.write('You selected:', option)
-    
-
 
     # Navigation Bar
     with st.sidebar:
@@ -71,7 +62,7 @@ def main():
                                     'pencil-fill'],
                              menu_icon="coin", default_index=0,
                              styles={
-                                 "container": {"padding": "5!important", "background-color": "#bfcce3"},
+                                 "container": {"padding": "5!important", "background-color": "#007bff"},
                                  "icon": {"color": "black", "font-size": "25px"},
                                  "nav-link": {"font-size": "16px", "text-align": "left", "margin": "0px",
                                               "--hover-color": "#eee"},
@@ -80,20 +71,141 @@ def main():
                              )
 
     if choose == "Support and Resistance":
+        def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_factor, up_factor):
+            for level in support_levels:
+                print(new_df['datetime'][level[1]])
+                print(new_df['datetime'][-1])
+                bottom_factor = bottom_factor
+                up_factor = up_factor
+                chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="green")
+                chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
+                                x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="#90EE90", width=2),
+                                fillcolor="rgba(144,238,144,0.2)")
+            for level in resistance_levels:
+                chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="red")
+                chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
+                                x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="red", width=2),
+                                fillcolor="rgba(255, 0, 0, 0.2)")
+
+        def filling_support_levels(new_df, support_levels, bottom_factor, up_factor):
+            support_copy: List = []
+            for i in range(2, new_df.shape[0] - 2):
+                if is_support(new_df, i):
+                    low = new_df['low'][i]
+                    support_levels.append([low, i, 1])
+            for i in range(0, len(support_levels)):
+                item = support_levels[i][0]
+                for j in range(i + 1, len(support_levels)):
+                    if (support_levels[j][0] * bottom_factor <= item * bottom_factor <= support_levels[j][
+                        0] * up_factor or \
+                        support_levels[j][0] * bottom_factor <= item * up_factor <= support_levels[j][
+                            0] * up_factor) and \
+                            support_levels[i] != [0, 0, 0]:
+                        support_levels[i][2] = support_levels[i][2] + 1
+                        support_levels[j] = [0, 0, 0]
+
+            print("Support Levels davor", support_levels)
+            for i in range(0, len(support_levels)):
+                if support_levels[i] != [0, 0, 0]:
+                    support_copy.append(support_levels[i])
+            support_levels = []
+            print("Leere Support Levels", support_levels)
+            for i in range(0, len(support_copy)):
+                if support_copy[i][2] >= 3:
+                    support_levels.append(support_copy[i])
+            print("Support Levels danach", support_levels)
+            return support_levels
+
+        def filling_resistance_levels(new_df, resistance_levels, bottom_factor, up_factor):
+            resistance_copy: List = []
+            for i in range(2, new_df.shape[0] - 2):
+                if is_resistance(new_df, i):
+                    high = new_df['high'][i]
+                    resistance_levels.append([high, i, 1])
+            for i in range(0, len(resistance_levels)):
+                item = resistance_levels[i][0]
+                for j in range(i + 1, len(resistance_levels)):
+                    if (resistance_levels[j][0] * bottom_factor <= item * bottom_factor <= resistance_levels[j][
+                        0] * up_factor or \
+                        resistance_levels[j][0] * bottom_factor <= item * up_factor <= resistance_levels[j][
+                            0] * up_factor) and \
+                            resistance_levels[i] != [0, 0, 0]:
+                        resistance_levels[i][2] = resistance_levels[i][2] + 1
+                        resistance_levels[j] = [0, 0, 0]
+
+            print("Resistance Levels davor", resistance_levels)
+            for i in range(0, len(resistance_levels)):
+                if resistance_levels[i] != [0, 0, 0]:
+                    resistance_copy.append(resistance_levels[i])
+            resistance_levels = []
+            print("Leere Support Levels", resistance_levels)
+            for i in range(0, len(resistance_copy)):
+                if resistance_copy[i][2] >= 3:
+                    resistance_levels.append(resistance_copy[i])
+            print("Resistance Levels danach", resistance_levels)
+            return resistance_levels
+
+        def is_support(new_df, i: int):
+            # get bullish fractal
+            candle1 = new_df['low'][i] < new_df['low'][i + 1]
+            candle2 = new_df['low'][i] < new_df['low'][i - 1]
+            candle3 = new_df['low'][i + 1] < new_df['low'][i + 2]
+            candle4 = new_df['low'][i - 1] < new_df['low'][i - 2]
+            return candle1 and candle2 and candle3 and candle4
+
+        def is_resistance(new_df, i: int):
+            candle1 = new_df['high'][i] > new_df['high'][i + 1]
+            candle2 = new_df['high'][i] > new_df['high'][i - 1]
+            candle3 = new_df['high'][i + 1] > new_df['high'][i + 2]
+            candle4 = new_df['high'][i - 1] > new_df['high'][i - 2]
+            return candle1 and candle2 and candle3 and candle4
+
+        def remove_duplicate_supports(bottom_line, resistance_levels, support_levels, supports_to_remove, up_line):
+            for resistance in resistance_levels:
+                for support in support_levels:
+                    if (resistance[0] * bottom_line <= support[0] * bottom_line <= resistance[0] * up_line or
+                        resistance[0] * bottom_line <= support[0] * up_line <= resistance[0] * up_line) and support[1] > \
+                            resistance[1]:
+                        supports_to_remove.append(support)
+            for support in supports_to_remove:
+                support_levels.remove(support)
+
+        def remove_duplicate_resistances(bottom_line, resistance_levels, resistances_to_remove, support_levels,
+                                         up_line):
+            for support in support_levels:
+                for resistance in resistance_levels:
+                    if (support[0] * bottom_line <= resistance[0] * bottom_line <= support[0] * up_line or
+                        support[0] * bottom_line <= resistance[0] * up_line <= support[0] * up_line) and resistance[1] > \
+                            support[1]:
+                        resistances_to_remove.append(resistance)
+            for resistance in resistances_to_remove:
+                resistance_levels.remove(resistance)
+
         st.title("Support and Resistance")
         new_df = pd.DataFrame(sample_data)
         support_levels = []
         resistance_levels = []
-        filling_support_resistance_array_with_data(new_df, resistance_levels, support_levels)
-
+        bottom_line = 0.9886
+        up_line = 1.007
+        support_levels = filling_support_levels(new_df, support_levels, bottom_line, up_line)
+        resistance_levels = filling_resistance_levels(new_df, resistance_levels, bottom_line, up_line)
+        resistances_to_remove: List = []
+        supports_to_remove: List = []
+        remove_duplicate_resistances(bottom_line, resistance_levels, resistances_to_remove, support_levels, up_line)
+        remove_duplicate_supports(bottom_line, resistance_levels, support_levels, supports_to_remove, up_line)
         print(new_df)
         chart = px.line()
-        chart.update_layout(title= option, xaxis_title='Date', yaxis_title='Price')
+        chart.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
         chart.add_scatter(x=new_df['datetime'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
         chart.add_scatter(x=new_df['datetime'], y=new_df['high'], mode='lines', line_color='violet',
                           name='Highest Price')
-        adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels)
+        adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_line, up_line)
         st.write(chart)
+
 
 
 
@@ -101,7 +213,7 @@ def main():
     elif choose == "Momentum":
         # Momentum Strategy Methods
 
-        #specific data frame for momentum strategy
+        # specific data frame for momentum strategy
         momentum_data = pd.DataFrame(sample_data)
 
         # 1. STOCHASTIC OSCILLATOR CALCULATION
@@ -113,9 +225,8 @@ def main():
             d_line = k_line.rolling(d_lookback).mean()
             return k_line, d_line
 
-
-        momentum_data['%k'], momentum_data['%d'] = get_stoch_osc(momentum_data['high'], momentum_data['low'], momentum_data['close'], 14, 3)
-
+        momentum_data['%k'], momentum_data['%d'] = get_stoch_osc(momentum_data['high'], momentum_data['low'],
+                                                                 momentum_data['close'], 14, 3)
 
         # 2. MACD CALCULATION
 
@@ -127,12 +238,10 @@ def main():
             hist = pd.DataFrame(macd['macd'] - signal['signal']).rename(columns={0: 'hist'})
             return macd, signal, hist
 
-
         momentum_data['macd'] = get_macd(momentum_data['close'], 26, 12, 9)[0]
         momentum_data['macd_signal'] = get_macd(momentum_data['close'], 26, 12, 9)[1]
         momentum_data['macd_hist'] = get_macd(momentum_data['close'], 26, 12, 9)[2]
         momentum_data = momentum_data.dropna()
-
 
         # 3. TRADING STRATEGY
 
@@ -172,9 +281,11 @@ def main():
 
             return buy_price, sell_price, stoch_macd_signal
 
-
-        buy_price, sell_price, stoch_macd_signal = implement_stoch_macd_strategy(momentum_data['close'], momentum_data['%k'], momentum_data['%d'],
-                                                                                momentum_data['macd'], momentum_data['macd_signal'])
+        buy_price, sell_price, stoch_macd_signal = implement_stoch_macd_strategy(momentum_data['close'],
+                                                                                 momentum_data['%k'],
+                                                                                 momentum_data['%d'],
+                                                                                 momentum_data['macd'],
+                                                                                 momentum_data['macd_signal'])
 
         # 4. POSITION
 
@@ -198,7 +309,8 @@ def main():
         d_line = momentum_data['%d']
         macd_line = momentum_data['macd']
         signal_line = momentum_data['macd_signal']
-        stoch_macd_signal = pd.DataFrame(stoch_macd_signal).rename(columns={0: 'stoch_macd_signal'}).set_index(momentum_data.index)
+        stoch_macd_signal = pd.DataFrame(stoch_macd_signal).rename(columns={0: 'stoch_macd_signal'}).set_index(
+            momentum_data.index)
         position = pd.DataFrame(position).rename(columns={0: 'stoch_macd_position'}).set_index(momentum_data.index)
 
         frames = [close_price, k_line, d_line, macd_line, signal_line, stoch_macd_signal, position]
@@ -212,37 +324,38 @@ def main():
 
         plot_data = momentum_data[momentum_data.index >= '2020-01-01']
 
-        st.write(option,' PRICES')
+        st.write(option, ' PRICES')
         price_chart = px.line()
-        price_chart.update_layout(title= option, xaxis_title='Date', yaxis_title='Price')
-        price_chart.add_scatter(x=plot_data['datetime'], y=plot_data['close'], mode='lines', line_color='blue', name='Close')
+        price_chart.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
+        price_chart.add_scatter(x=plot_data['datetime'], y=plot_data['close'], mode='lines', line_color='blue',
+                                name='Close')
         st.write(price_chart)
 
-        st.write( option, f' STOCH 14,3')
+        st.write(option, f' STOCH 14,3')
         stoch_chart = px.line()
-        stoch_chart.update_layout(title= option, xaxis_title='Date', yaxis_title='stoch')
+        stoch_chart.update_layout(title=option, xaxis_title='Date', yaxis_title='stoch')
         stoch_chart.add_scatter(x=plot_data['datetime'], y=plot_data[f"%k"], mode='lines', line_color='blue', name='%K')
         stoch_chart.add_hline(y=70, line_dash="dot",
-              annotation_text="Jan 1, 2018 baseline", 
-              annotation_position="bottom right",
-              annotation_font_size=20,
-              annotation_font_color="blue"
-             )
-        stoch_chart.add_scatter(x=plot_data['datetime'], y=plot_data[f"%d"], mode='lines', line_color='orange', name="%D")
+                              annotation_text="Jan 1, 2018 baseline",
+                              annotation_position="bottom right",
+                              annotation_font_size=20,
+                              annotation_font_color="blue"
+                              )
+        stoch_chart.add_scatter(x=plot_data['datetime'], y=plot_data[f"%d"], mode='lines', line_color='orange',
+                                name="%D")
         st.write(stoch_chart)
-
 
         st.write(option, ' MACD 26,12,9')
         macd_chart = px.line()
-        macd_chart.update_layout(title= option, xaxis_title='Date', yaxis_title='macd')
-        macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd'], mode='lines', line_color='blue', name='macd')
+        macd_chart.update_layout(title=option, xaxis_title='Date', yaxis_title='macd')
+        macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd'], mode='lines', line_color='blue',
+                               name='macd')
         macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd_signal'], mode='lines', line_color='orange',
-                          name="signal")
+                               name="signal")
         macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd_hist'], mode='lines', line_color='violet',
-                          name="hist")
+                               name="hist")
         st.write(macd_chart)
 
-        
         st.write("Back Testing Momentum Strategy")
         for i in range(len(momentum_ret)):
             try:
@@ -264,7 +377,8 @@ def main():
         total_investment_ret = round(sum(stoch_macd_investment_ret_df['investment_returns']), 2)
         profit_percentage = floor((total_investment_ret / investment_value) * 100)
         st.write(
-            'Profit gained from the STOCH MACD strategy by investing $100k in' , option, ': {}'.format(total_investment_ret))
+            'Profit gained from the STOCH MACD strategy by investing $100k in', option,
+            ': {}'.format(total_investment_ret))
         st.write('Profit percentage of the STOCH MACD strategy : {}%'.format(profit_percentage))
 
 
@@ -285,96 +399,15 @@ def main():
         st.plotly_chart(fig)
 
 
+
+
+
 # ------METHODS--------------------
 
 
 # ------------------------------------------------------------------------------
 
 # Resistance and Support Indicator
-def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels):
-    for level in support_levels:
-        print(new_df['datetime'][level[1]])
-        print(new_df['datetime'][-1])
-        chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                        x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="green")
-        chart.add_shape(type="rect", y0=level[0] * 0.9996, y1=level[0] * 1.00005,
-                        x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                        x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="#90EE90", width=2),
-                        fillcolor="rgba(144,238,144,0.2)")
-    for level in resistance_levels:
-        chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                        x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="red")
-        chart.add_shape(type="rect", y0=level[0] * 0.9996, y1=level[0] * 1.00005,
-                        x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                        x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="red", width=2),
-                        fillcolor="rgba(255, 0, 0, 0.2)")
-
-
-def filling_support_resistance_array_with_data(new_df, resistance_levels, support_levels):
-    for i in range(2, new_df.shape[0] - 2):
-        if is_support(new_df, i):
-            low = new_df['low'][i]
-            if len(support_levels) == 0:
-                support_levels.append([low, i])
-
-            elif len(support_levels) > 0:
-                found_support: bool = False
-                found_resistance: bool = False
-                found_support = checking_for_supports_or_resistances(i, new_df, found_support, support_levels, 'low')
-                found_resistance = checking_for_supports_or_resistances(i, new_df, found_resistance,
-                                                                        resistance_levels, 'low')
-                if found_support or found_resistance:
-                    continue
-
-                else:
-                    if [low, i] not in support_levels:
-                        support_levels.append([low, i])
-        elif is_resistance(new_df, i):
-            high = new_df['high'][i]
-            if len(resistance_levels) == 0:
-                resistance_levels.append([high, i])
-            elif len(resistance_levels) > 0:
-                found_support: bool = False
-                found_resistance: bool = False
-                found_support = checking_for_supports_or_resistances(i, new_df, found_support, support_levels, 'high')
-                found_resistance = checking_for_supports_or_resistances(i, new_df, found_resistance,
-                                                                        resistance_levels, 'high')
-                if found_support or found_resistance:
-                    continue
-                else:
-                    if [high, i] not in resistance_levels:
-                        resistance_levels.append([high, i])
-    print("Final Support List", support_levels)
-    print("Final Reistance List", resistance_levels)
-
-
-def checking_for_supports_or_resistances(i, new_df, found, levels, extremes: str):
-    for j in range(0, len(levels)):
-        if (levels[j][0] * 0.9996 <= new_df[extremes][i] <= levels[j][0] * 1.00005) or \
-                (levels[j][0] * 0.9996 <= new_df[extremes][i] * 0.9996 <= levels[j][
-                    0] * 1.00005) or \
-                (levels[j][0] * 0.9996 <= new_df[extremes][i] * 1.00005 <= levels[j][
-                    0] * 1.00005):
-            found = True
-            break
-    return found
-
-
-def is_support(new_df, i: int):
-    # get bullish fractal
-    candle1 = new_df['low'][i] < new_df['low'][i + 1]
-    candle2 = new_df['low'][i] < new_df['low'][i - 1]
-    candle3 = new_df['low'][i + 1] < new_df['low'][i + 2]
-    candle4 = new_df['low'][i - 1] < new_df['low'][i - 2]
-    return (candle1 and candle2 and candle3 and candle4)
-
-
-def is_resistance(new_df, i: int):
-    candle1 = new_df['high'][i] > new_df['high'][i + 1]
-    candle2 = new_df['high'][i] > new_df['high'][i - 1]
-    candle3 = new_df['high'][i + 1] > new_df['high'][i + 2]
-    candle4 = new_df['high'][i - 1] > new_df['high'][i - 2]
-    return (candle1 and candle2 and candle3 and candle4)
 
 
 # -------------------------------------------------------------------

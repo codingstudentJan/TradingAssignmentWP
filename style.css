@@ -11,3 +11,6 @@ span {
     /* Verwenden Sie die Bootstrap-Klasse "text-primary" */
     color: #007bff;
 }
+#app > div > div > div{
+    background: #007bff;
+}
