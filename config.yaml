@@ -1,0 +1,13 @@
+credentials:
+  usernames:
+    cPerrot:
+      email: jsmith@gmail.com
+      name: Cedric Perrot
+      password: $2b$12$/KPWQUNuKy.SdLPDzNQsDueOvTNeM6ThFe5M7LMeApg.XseQWCCXC # To be replaced with hashed password
+cookie:
+  expiry_days: 0
+  key: 's3cr3t_k3y_f0r_str34ml1t_app' # Must be string
+  name: trading_app
+preauthorized:
+  emails:
+  - melsby@gmail.com
