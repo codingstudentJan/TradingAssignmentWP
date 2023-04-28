@@ -12,6 +12,7 @@ import yaml
 from streamlit_authenticator import Authenticate
 from streamlit_option_menu import option_menu
 from yaml.loader import SafeLoader
+from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
 
@@ -26,7 +27,7 @@ def fetch(session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
+with open(r'D:\New folder\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -269,228 +270,19 @@ if authentication_status:
 
 
 
-
-
         elif choose == "Momentum":
-            # Momentum Strategy Methods
+            st.title('Momentum')
 
-            # specific data frame for momentum strategy
-            momentum_data = pd.DataFrame(sample_data)
+            #Calling the momentum method
+            sample_data = apply_momentum_strategy(sample_data)
+            st.write(sample_data)
 
-            # 1. STOCHASTIC OSCILLATOR CALCULATION
+            # Create chart data from sample data
+            chart_data = st.line_chart(sample_data['Cumulative Returns'])
 
-            def get_stoch_osc(high, low, close, k_lookback, d_lookback):
-                lowest_low = low.rolling(k_lookback).min()
-                highest_high = high.rolling(k_lookback).max()
-                k_line = ((close - lowest_low) / (highest_high - lowest_low)) * 100
-                d_line = k_line.rolling(d_lookback).mean()
-                return k_line, d_line
+            # Add buy and sell signals to chart data
+            chart_data = add_signals_to_chart(chart_data, sample_data)
 
-            momentum_data['%k'], momentum_data['%d'] = get_stoch_osc(momentum_data['high'], momentum_data['low'],
-                                                                     momentum_data['close'], 14, 3)
-
-            # 2. MACD CALCULATION
-
-            def get_macd(price, slow, fast, smooth):
-                exp1 = price.ewm(span=fast, adjust=False).mean()
-                exp2 = price.ewm(span=slow, adjust=False).mean()
-                macd = pd.DataFrame(exp1 - exp2).rename(columns={'close': 'macd'})
-                signal = pd.DataFrame(macd.ewm(span=smooth, adjust=False).mean()).rename(columns={'macd': 'signal'})
-                hist = pd.DataFrame(macd['macd'] - signal['signal']).rename(columns={0: 'hist'})
-                return macd, signal, hist
-
-            momentum_data['macd'] = get_macd(momentum_data['close'], 26, 12, 9)[0]
-            momentum_data['macd_signal'] = get_macd(momentum_data['close'], 26, 12, 9)[1]
-            momentum_data['macd_hist'] = get_macd(momentum_data['close'], 26, 12, 9)[2]
-            momentum_data = momentum_data.dropna()
-
-            # 3. TRADING STRATEGY
-
-            def implement_stoch_macd_strategy(prices, k, d, macd, macd_signal):
-                buy_price = []
-                sell_price = []
-                stoch_macd_signal = []
-                signal = 0
-
-                for i in range(len(prices)):
-                    if k[i] < 30 and d[i] < 30 and macd[i] < -2 and macd_signal[i] < -2:
-                        if signal != 1:
-                            buy_price.append(prices[i])
-                            sell_price.append(np.nan)
-                            signal = 1
-                            stoch_macd_signal.append(signal)
-                        else:
-                            buy_price.append(np.nan)
-                            sell_price.append(np.nan)
-                            stoch_macd_signal.append(0)
-
-                    elif k[i] > 70 and d[i] > 70 and macd[i] > 2 and macd_signal[i] > 2:
-                        if signal != -1 and signal != 0:
-                            buy_price.append(np.nan)
-                            sell_price.append(prices[i])
-                            signal = -1
-                            stoch_macd_signal.append(signal)
-                        else:
-                            buy_price.append(np.nan)
-                            sell_price.append(np.nan)
-                            stoch_macd_signal.append(0)
-
-                    else:
-                        buy_price.append(np.nan)
-                        sell_price.append(np.nan)
-                        stoch_macd_signal.append(0)
-
-                return buy_price, sell_price, stoch_macd_signal
-
-            buy_price, sell_price, stoch_macd_signal = implement_stoch_macd_strategy(momentum_data['close'],
-                                                                                     momentum_data['%k'],
-                                                                                     momentum_data['%d'],
-                                                                                     momentum_data['macd'],
-                                                                                     momentum_data['macd_signal'])
-
-            # 4. POSITION
-
-            position = []
-            for i in range(len(stoch_macd_signal)):
-                if stoch_macd_signal[i] > 1:
-                    position.append(0)
-                else:
-                    position.append(1)
-
-            for i in range(len(momentum_data['close'])):
-                if stoch_macd_signal[i] == 1:
-                    position[i] = 1
-                elif stoch_macd_signal[i] == -1:
-                    position[i] = 0
-                else:
-                    position[i] = position[i - 1]
-
-            close_price = momentum_data['close']
-            k_line = momentum_data['%k']
-            d_line = momentum_data['%d']
-            macd_line = momentum_data['macd']
-            signal_line = momentum_data['macd_signal']
-            stoch_macd_signal = pd.DataFrame(stoch_macd_signal).rename(columns={0: 'stoch_macd_signal'}).set_index(
-                momentum_data.index)
-            position = pd.DataFrame(position).rename(columns={0: 'stoch_macd_position'}).set_index(momentum_data.index)
-
-            frames = [close_price, k_line, d_line, macd_line, signal_line, stoch_macd_signal, position]
-            strategy = pd.concat(frames, join='inner', axis=1)
-
-            # -----------Momentum Output--------
-
-            st.title("Momentum")
-            momentum_ret = pd.DataFrame(np.diff(momentum_data['close'])).rename(columns={0: 'returns'})
-            stoch_macd_strategy_ret = []
-
-            plot_data = momentum_data[momentum_data.index >= '2020-01-01']
-
-            st.write(option, ' PRICES')
-            price_chart = px.line()
-            price_chart.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
-            price_chart.add_scatter(x=plot_data['datetime'], y=plot_data['close'], mode='lines', line_color='blue',
-                                    name='Close')
-            st.write(price_chart)
-
-            # create a line chart for %K
-            trace_k = go.Scatter(x=plot_data['datetime'], y=plot_data['%k'], mode='lines', name='%K',
-                                 line=dict(color='deepskyblue', width=1.5))
-
-            # create a line chart for %D
-            trace_d = go.Scatter(x=plot_data['datetime'], y=plot_data['%d'], mode='lines', name='%D',
-                                 line=dict(color='orange', width=1.5))
-
-            # create a horizontal line for the 70 and 30 levels
-            hline1 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=70, x1=max(plot_data['datetime']),
-                                     y1=70, line=dict(color='black', width=1, dash='dash'))
-            hline2 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=30, x1=max(plot_data['datetime']),
-                                     y1=30, line=dict(color='black', width=1, dash='dash'))
-
-            # combine the charts and shapes into a single figure
-            fig = go.Figure(data=[trace_k, trace_d], layout=go.Layout(shapes=[hline1, hline2]))
-
-            # update the layout with the title and axis labels
-            fig.update_layout(title=f"{option} STOCH 14,3", xaxis_title='Date', yaxis_title='stoch')
-
-            # show the figure
-            st.write(fig)
-
-            st.write(option, ' MACD 26,12,9')
-            fig = go.Figure()
-
-            # Add MACD line trace
-            fig.add_trace(
-                go.Scatter(
-                    x=plot_data['datetime'],
-                    y=plot_data['macd'],
-                    mode='lines',
-                    name='MACD',
-                    line=dict(color='blue')
-                )
-            )
-
-            # Add signal line trace
-            fig.add_trace(
-                go.Scatter(
-                    x=plot_data['datetime'],
-                    y=plot_data['macd_signal'],
-                    mode='lines',
-                    name='Signal',
-                    line=dict(color='orange')
-                )
-            )
-
-            # Add histogram bars trace
-            fig.add_trace(
-                go.Bar(
-                    x=plot_data['datetime'],
-                    y=plot_data['macd_hist'],
-                    name='Histogram',
-                    marker=dict(
-                        color=plot_data['macd_hist'],
-                        colorscale='RdBu',
-                        showscale=False,
-                        cmin=-1,
-                        cmax=1
-                    )
-                )
-            )
-
-            # Set figure layout
-            fig.update_layout(
-                title=option + ' MACD 26,12,9',
-                xaxis_title='Date',
-                yaxis_title='MACD'
-            )
-
-            # Show the plot
-            st.plotly_chart(fig)
-
-            st.write("Back Testing Momentum Strategy")
-            for i in range(len(momentum_ret)):
-                try:
-                    returns = momentum_ret['returns'][i] * strategy['stoch_macd_position'][i]
-                    stoch_macd_strategy_ret.append(returns)
-                except:
-                    pass
-
-            stoch_macd_strategy_ret_df = pd.DataFrame(stoch_macd_strategy_ret).rename(columns={0: 'stoch_macd_returns'})
-            investment_value = 100000
-            number_of_stocks = floor(investment_value / momentum_data['close'][0])
-            stoch_macd_investment_ret = []
-
-            for i in range(len(stoch_macd_strategy_ret_df['stoch_macd_returns'])):
-                returns = number_of_stocks * stoch_macd_strategy_ret_df['stoch_macd_returns'][i]
-                stoch_macd_investment_ret.append(returns)
-
-            stoch_macd_investment_ret_df = pd.DataFrame(stoch_macd_investment_ret).rename(
-                columns={0: 'investment_returns'})
-            total_investment_ret = round(sum(stoch_macd_investment_ret_df['investment_returns']), 2)
-            profit_percentage = floor((total_investment_ret / investment_value) * 100)
-            st.write(
-                'Profit gained from the STOCH MACD strategy by investing $100k in', option,
-                ': {}'.format(total_investment_ret))
-            st.write('Profit percentage of the STOCH MACD strategy : {}%'.format(profit_percentage))
 
 
         elif choose == "Bollinger":

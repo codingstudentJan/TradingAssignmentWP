@@ -14,6 +14,7 @@ and all this dependencies installed:
     pip install NumPy
     pip install alpaca-py
     pip install streamlit-authenticator
+    Pip install ta
 ```
 
 Config file aktualisieren in Streamlit_app file
