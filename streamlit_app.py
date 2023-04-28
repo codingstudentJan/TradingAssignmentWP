@@ -1,3 +1,4 @@
+import datetime
 from math import floor
 from typing import List
 
@@ -7,13 +8,14 @@ import plotly.express as px
 import plotly.graph_objs as go
 import requests
 import streamlit as st
+import yaml
 from streamlit_authenticator import Authenticate
 from streamlit_option_menu import option_menu
-import streamlit_authenticator as stauth
-import datetime
-import yaml
 from yaml.loader import SafeLoader
+
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
+
+
 def fetch(session, url):
     try:
         result = session.get(url)
@@ -21,7 +23,8 @@ def fetch(session, url):
     except Exception:
         print("Data Fetching failed")
 
-#hashed_passwords = stauth.Hasher(['abc123','def']).generate()
+
+# hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
 with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
@@ -50,17 +53,17 @@ stocks_category = {
 if authentication_status:
     def main():
         authenticator.logout('Logout', 'sidebar')
-        #with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
-         #   st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+        # with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
+        #   st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
         st.title("Welcome to Prodigy Trade!")
-        filter_expander = st.expander(label="Klicken zum Filtern")
+        filter_expander = st.expander(label="Click to filter")
         with filter_expander:
 
             with st.container():
                 col1 = st.columns(1)
                 option = st.selectbox(
-                            'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
-                            stocks_category.keys())
+                    'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
+                    stocks_category.keys())
                 option = option.replace("/", "-")
             with st.container():
                 col1, col2 = st.columns(2)
@@ -73,21 +76,22 @@ if authentication_status:
                         "At whicht date should the chart end?",
                         datetime.date.today())
             with st.container():
-                col1,col2 = st.columns(2)
+                col1, col2 = st.columns(2)
                 with col1:
-                    start_time = st.time_input("At which time should the chart start?", datetime.time(00,00,00))
+                    start_time = st.time_input("At which time should the chart start?", datetime.time(00, 00, 00))
                 with col2:
-                    end_time = st.time_input("at which time should the chart end?")
+                    end_time = st.time_input("at which time should the chart end?", datetime.time(17,00,00))
         temp_start_date_time = datetime.datetime.combine(start_date, start_time)
-        start_date_time = str(temp_start_date_time).replace(" ","T")+"+00:00"
+        start_date_time = str(temp_start_date_time).replace(" ", "T") + "+00:00"
         temp_end_date_time = datetime.datetime.combine(end_date, end_time)
-        new_temp_end_date_time = temp_end_date_time - datetime.timedelta(hours=3)
+        new_temp_end_date_time = temp_end_date_time
         end_date_time = str(new_temp_end_date_time).replace(" ", "T") + "+00:00"
         print(start_date_time)
         print(end_date_time)
-        sample = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
-        sample_data = pd.read_json(sample,orient="columns" )
-        #st.write('You selected:', option)
+        sample = fetch(session,
+                       f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
+        sample_data = pd.read_json(sample, orient="columns")
+        # st.write('You selected:', option)
 
         # Navigation Bar
         with st.sidebar:
@@ -175,44 +179,53 @@ if authentication_status:
                 for resistance in resistance_levels:
                     for support in support_levels:
                         if (resistance[0] * bottom_line <= support[0] * bottom_line <= resistance[0] * up_line or
-                            resistance[0] * bottom_line <= support[0] * up_line <= resistance[0] * up_line) and support[1] > \
+                            resistance[0] * bottom_line <= support[0] * up_line <= resistance[0] * up_line) and support[
+                            1] > \
                                 resistance[1]:
                             supports_to_remove.append(support)
                 for support in supports_to_remove:
-                    support_levels.remove(support)
+                    if support in support_levels:
+                        support_levels.remove(support)
 
             def remove_duplicate_resistances(bottom_line, resistance_levels, resistances_to_remove, support_levels,
                                              up_line):
                 for support in support_levels:
                     for resistance in resistance_levels:
                         if (support[0] * bottom_line <= resistance[0] * bottom_line <= support[0] * up_line or
-                            support[0] * bottom_line <= resistance[0] * up_line <= support[0] * up_line) and resistance[1] > \
+                            support[0] * bottom_line <= resistance[0] * up_line <= support[0] * up_line) and resistance[
+                            1] > \
                                 support[1]:
                             resistances_to_remove.append(resistance)
                 for resistance in resistances_to_remove:
-                    resistance_levels.remove(resistance)
+                    if resistance in resistance_levels:
+                        resistance_levels.remove(resistance)
 
-            def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_factor, up_factor):
-                last_entry = new_df.shape[0]-1
+            def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_factor,
+                                                up_factor):
+                last_entry = new_df.shape[0] - 1
                 for level in support_levels:
                     print(new_df['datetime'][level[1]])
                     print(new_df['datetime'][last_entry])
                     bottom_factor = bottom_factor
                     up_factor = up_factor
-                    chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line_dash="dash", line_color="green")
+                    chart.add_shape(type="line", y0=level[0], y1=level[0],
+                                    x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line_dash="dash",
+                                    line_color="green")
                     chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
                                     x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line=dict(color="#90EE90", width=2),
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]),
+                                    line=dict(color="#90EE90", width=2),
                                     fillcolor="rgba(144,238,144,0.2)")
                 for level in resistance_levels:
-                    chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line_dash="dash", line_color="red")
+                    chart.add_shape(type="line", y0=level[0], y1=level[0],
+                                    x0=pd.to_datetime(new_df['datetime'][level[1]]),
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line_dash="dash",
+                                    line_color="red")
                     chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
                                     x0=pd.to_datetime(new_df['datetime'][level[1]]),
                                     x1=pd.to_datetime(new_df['datetime'][last_entry]), line=dict(color="red", width=2),
                                     fillcolor="rgba(255, 0, 0, 0.2)")
-
 
             # Setup of the page and for computation with algorithm
             new_df = pd.DataFrame(sample_data)
@@ -223,8 +236,8 @@ if authentication_status:
             # Setting the boundaries (percentage of price found as support/resistance) for rectangle zones of supports
             # and resistances
 
-            bottom_line = 0.9886
-            up_line = 1.007
+            bottom_line = 0.99886
+            up_line = 1.0007
 
             safe_extrema_number = st.number_input("Insert Safe Support/Resistance number", value=3, min_value=3,
                                                   max_value=5, step=1,
@@ -247,7 +260,8 @@ if authentication_status:
             # Generating the chart based on the Arrays and the Dataframe
             chart = px.line()
             chart.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
-            chart.add_scatter(x=new_df['datetime'], y=new_df['low'], mode='lines', line_color='blue', name='Lowest Price')
+            chart.add_scatter(x=new_df['datetime'], y=new_df['low'], mode='lines', line_color='blue',
+                              name='Lowest Price')
             chart.add_scatter(x=new_df['datetime'], y=new_df['high'], mode='lines', line_color='violet',
                               name='Highest Price')
             adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_line, up_line)
@@ -379,14 +393,18 @@ if authentication_status:
             st.write(price_chart)
 
             # create a line chart for %K
-            trace_k = go.Scatter(x=plot_data['datetime'], y=plot_data['%k'], mode='lines', name='%K', line=dict(color='deepskyblue', width=1.5))
+            trace_k = go.Scatter(x=plot_data['datetime'], y=plot_data['%k'], mode='lines', name='%K',
+                                 line=dict(color='deepskyblue', width=1.5))
 
             # create a line chart for %D
-            trace_d = go.Scatter(x=plot_data['datetime'], y=plot_data['%d'], mode='lines', name='%D', line=dict(color='orange', width=1.5))
+            trace_d = go.Scatter(x=plot_data['datetime'], y=plot_data['%d'], mode='lines', name='%D',
+                                 line=dict(color='orange', width=1.5))
 
             # create a horizontal line for the 70 and 30 levels
-            hline1 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=70, x1=max(plot_data['datetime']), y1=70, line=dict(color='black', width=1, dash='dash'))
-            hline2 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=30, x1=max(plot_data['datetime']), y1=30, line=dict(color='black', width=1, dash='dash'))
+            hline1 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=70, x1=max(plot_data['datetime']),
+                                     y1=70, line=dict(color='black', width=1, dash='dash'))
+            hline2 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=30, x1=max(plot_data['datetime']),
+                                     y1=30, line=dict(color='black', width=1, dash='dash'))
 
             # combine the charts and shapes into a single figure
             fig = go.Figure(data=[trace_k, trace_d], layout=go.Layout(shapes=[hline1, hline2]))
@@ -440,14 +458,13 @@ if authentication_status:
 
             # Set figure layout
             fig.update_layout(
-                title=option+' MACD 26,12,9',
+                title=option + ' MACD 26,12,9',
                 xaxis_title='Date',
                 yaxis_title='MACD'
             )
 
             # Show the plot
             st.plotly_chart(fig)
-
 
             st.write("Back Testing Momentum Strategy")
             for i in range(len(momentum_ret)):
@@ -466,7 +483,8 @@ if authentication_status:
                 returns = number_of_stocks * stoch_macd_strategy_ret_df['stoch_macd_returns'][i]
                 stoch_macd_investment_ret.append(returns)
 
-            stoch_macd_investment_ret_df = pd.DataFrame(stoch_macd_investment_ret).rename(columns={0: 'investment_returns'})
+            stoch_macd_investment_ret_df = pd.DataFrame(stoch_macd_investment_ret).rename(
+                columns={0: 'investment_returns'})
             total_investment_ret = round(sum(stoch_macd_investment_ret_df['investment_returns']), 2)
             profit_percentage = floor((total_investment_ret / investment_value) * 100)
             st.write(
@@ -494,11 +512,9 @@ if authentication_status:
 
     # ------METHODS--------------------
 
-
     # ------------------------------------------------------------------------------
 
     # Resistance and Support Indicator
-
 
     # -------------------------------------------------------------------
     # Bollinger Bands
