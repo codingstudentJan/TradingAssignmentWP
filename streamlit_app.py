@@ -10,6 +10,7 @@ import streamlit as st
 from streamlit_authenticator import Authenticate
 from streamlit_option_menu import option_menu
 import streamlit_authenticator as stauth
+import datetime
 import yaml
 from yaml.loader import SafeLoader
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
@@ -22,7 +23,7 @@ def fetch(session, url):
 
 #hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r'D:\New folder\TraderJoe\config.yaml') as file:
+with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -41,23 +42,10 @@ session = requests.Session()
 stocks_category = {
     'Stocks Apple': 'AAPL',
     'Stocks Amazon': 'AMZN',
-    'Stocks Google': 'GOOGL',
-    'Stocks Goldman Sachs': 'GS',
     'Stocks META': 'META',
     'Stocks Microsoft': 'MSFT',
-    'Stocks Nike': 'NKE',
-    'Stocks Pfizer': 'PFE',
-    'Stocks Procter and Gamble': 'PG',
     'Stocks Tesla': 'TSLA',
-    'Stocks Walmart': 'WMT',
-    'Forex Euro/USD': 'EUR-USD',
-    'Forex  Gold Spot': 'XAU-USD',
-    'Crypto Bitcoin/USD': 'BTC-USD',
-    'Crypto Ethereum/Bitcoin': 'ETH-BTC',
     'ETF SPDR S&P 500 ETF Trust': 'SPY',
-    'ETF Vanguard Total Stock Market Index Fund ETF Shares': 'VTI',
-    'Indices NASDAQ Composite': 'IXIC',
-    'Indices S&P 500': 'SPX'
 }
 if authentication_status:
     def main():
@@ -65,11 +53,40 @@ if authentication_status:
         #with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
          #   st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
         st.title("Welcome to Prodigy Trade!")
-        option = st.selectbox(
-            'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
-            stocks_category.keys())
-        option = option.replace("/", "-")
-        sample_data = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}")
+        filter_expander = st.expander(label="Klicken zum Filtern")
+        with filter_expander:
+
+            with st.container():
+                col1 = st.columns(1)
+                option = st.selectbox(
+                            'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
+                            stocks_category.keys())
+                option = option.replace("/", "-")
+            with st.container():
+                col1, col2 = st.columns(2)
+                with col1:
+                    start_date = st.date_input(
+                        "At which date should the chart start?",
+                        datetime.date(2023, 4, 1))
+                with col2:
+                    end_date = st.date_input(
+                        "At whicht date should the chart end?",
+                        datetime.date.today())
+            with st.container():
+                col1,col2 = st.columns(2)
+                with col1:
+                    start_time = st.time_input("At which time should the chart start?", datetime.time(00,00,00))
+                with col2:
+                    end_time = st.time_input("at which time should the chart end?")
+        temp_start_date_time = datetime.datetime.combine(start_date, start_time)
+        start_date_time = str(temp_start_date_time).replace(" ","T")+"+00:00"
+        temp_end_date_time = datetime.datetime.combine(end_date, end_time)
+        new_temp_end_date_time = temp_end_date_time - datetime.timedelta(hours=3)
+        end_date_time = str(new_temp_end_date_time).replace(" ", "T") + "+00:00"
+        print(start_date_time)
+        print(end_date_time)
+        sample = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
+        sample_data = pd.read_json(sample,orient="columns" )
         #st.write('You selected:', option)
 
         # Navigation Bar
@@ -176,28 +193,30 @@ if authentication_status:
                     resistance_levels.remove(resistance)
 
             def adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_factor, up_factor):
+                last_entry = new_df.shape[0]-1
                 for level in support_levels:
                     print(new_df['datetime'][level[1]])
-                    print(new_df['datetime'][-1])
+                    print(new_df['datetime'][last_entry])
                     bottom_factor = bottom_factor
                     up_factor = up_factor
                     chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="green")
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line_dash="dash", line_color="green")
                     chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
                                     x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="#90EE90", width=2),
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line=dict(color="#90EE90", width=2),
                                     fillcolor="rgba(144,238,144,0.2)")
                 for level in resistance_levels:
                     chart.add_shape(type="line", y0=level[0], y1=level[0], x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][-1]), line_dash="dash", line_color="red")
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line_dash="dash", line_color="red")
                     chart.add_shape(type="rect", y0=level[0] * bottom_factor, y1=level[0] * up_factor,
                                     x0=pd.to_datetime(new_df['datetime'][level[1]]),
-                                    x1=pd.to_datetime(new_df['datetime'][-1]), line=dict(color="red", width=2),
+                                    x1=pd.to_datetime(new_df['datetime'][last_entry]), line=dict(color="red", width=2),
                                     fillcolor="rgba(255, 0, 0, 0.2)")
 
 
             # Setup of the page and for computation with algorithm
             new_df = pd.DataFrame(sample_data)
+            print(new_df)
             support_levels = []
             resistance_levels = []
 
