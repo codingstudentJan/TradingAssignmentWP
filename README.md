@@ -13,7 +13,12 @@ and all this dependencies installed:
     pip install plotly.express
     pip install NumPy
     pip install alpaca-py
+    pip install streamlit-authenticator
 ```
+
+Config file aktualisieren in Streamlit_app file
+
+Login Data: cPerrot, abc123
 
 - To run the application, input following commands in separate terminals (both must be active):
 ```bash

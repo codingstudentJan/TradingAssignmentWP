@@ -22,7 +22,7 @@ def fetch(session, url):
 
 #hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
+with open(r'D:\New folder\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -359,30 +359,76 @@ if authentication_status:
                                     name='Close')
             st.write(price_chart)
 
-            st.write(option, f' STOCH 14,3')
-            stoch_chart = px.line()
-            stoch_chart.update_layout(title=option, xaxis_title='Date', yaxis_title='stoch')
-            stoch_chart.add_scatter(x=plot_data['datetime'], y=plot_data[f"%k"], mode='lines', line_color='blue', name='%K')
-            stoch_chart.add_hline(y=70, line_dash="dot",
-                                  annotation_text="Jan 1, 2018 baseline",
-                                  annotation_position="bottom right",
-                                  annotation_font_size=20,
-                                  annotation_font_color="blue"
-                                  )
-            stoch_chart.add_scatter(x=plot_data['datetime'], y=plot_data[f"%d"], mode='lines', line_color='orange',
-                                    name="%D")
-            st.write(stoch_chart)
+            # create a line chart for %K
+            trace_k = go.Scatter(x=plot_data['datetime'], y=plot_data['%k'], mode='lines', name='%K', line=dict(color='deepskyblue', width=1.5))
+
+            # create a line chart for %D
+            trace_d = go.Scatter(x=plot_data['datetime'], y=plot_data['%d'], mode='lines', name='%D', line=dict(color='orange', width=1.5))
+
+            # create a horizontal line for the 70 and 30 levels
+            hline1 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=70, x1=max(plot_data['datetime']), y1=70, line=dict(color='black', width=1, dash='dash'))
+            hline2 = go.layout.Shape(type='line', x0=min(plot_data['datetime']), y0=30, x1=max(plot_data['datetime']), y1=30, line=dict(color='black', width=1, dash='dash'))
+
+            # combine the charts and shapes into a single figure
+            fig = go.Figure(data=[trace_k, trace_d], layout=go.Layout(shapes=[hline1, hline2]))
+
+            # update the layout with the title and axis labels
+            fig.update_layout(title=f"{option} STOCH 14,3", xaxis_title='Date', yaxis_title='stoch')
+
+            # show the figure
+            st.write(fig)
 
             st.write(option, ' MACD 26,12,9')
-            macd_chart = px.line()
-            macd_chart.update_layout(title=option, xaxis_title='Date', yaxis_title='macd')
-            macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd'], mode='lines', line_color='blue',
-                                   name='macd')
-            macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd_signal'], mode='lines', line_color='orange',
-                                   name="signal")
-            macd_chart.add_scatter(x=plot_data['datetime'], y=plot_data['macd_hist'], mode='lines', line_color='violet',
-                                   name="hist")
-            st.write(macd_chart)
+            fig = go.Figure()
+
+            # Add MACD line trace
+            fig.add_trace(
+                go.Scatter(
+                    x=plot_data['datetime'],
+                    y=plot_data['macd'],
+                    mode='lines',
+                    name='MACD',
+                    line=dict(color='blue')
+                )
+            )
+
+            # Add signal line trace
+            fig.add_trace(
+                go.Scatter(
+                    x=plot_data['datetime'],
+                    y=plot_data['macd_signal'],
+                    mode='lines',
+                    name='Signal',
+                    line=dict(color='orange')
+                )
+            )
+
+            # Add histogram bars trace
+            fig.add_trace(
+                go.Bar(
+                    x=plot_data['datetime'],
+                    y=plot_data['macd_hist'],
+                    name='Histogram',
+                    marker=dict(
+                        color=plot_data['macd_hist'],
+                        colorscale='RdBu',
+                        showscale=False,
+                        cmin=-1,
+                        cmax=1
+                    )
+                )
+            )
+
+            # Set figure layout
+            fig.update_layout(
+                title=option+' MACD 26,12,9',
+                xaxis_title='Date',
+                yaxis_title='MACD'
+            )
+
+            # Show the plot
+            st.plotly_chart(fig)
+
 
             st.write("Back Testing Momentum Strategy")
             for i in range(len(momentum_ret)):
