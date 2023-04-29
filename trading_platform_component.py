@@ -1,5 +1,7 @@
 import streamlit as st
 import alpaca_trade_api as tradeapi
+import smtplib
+from email.mime.text import MIMEText
 import time
 
 def trading_platform():
@@ -34,6 +36,18 @@ def trading_platform():
                 order = api.submit_order(symbol=selected_symbol, qty=qty, side='sell', type='market', time_in_force='day', order_class='simple')
 
             # Show the order details and current unrealized profit or loss
+            text = f"Your order of{selected_symbol} was a success"
+            mail = MIMEText(text)
+            mail['Subject'] = f"Your order{selected_symbol}"
+            mail['From'] = 'jan@juergenberger.de'
+            mail['To'] = 'jan@juergenberger.de'
+            sender = smtplib.SMTP("smtp.ionos.de",587)
+            sender.ehlo()
+            sender.starttls()
+            sender.ehlo()
+            sender.login('jan@juergenberger.de','')
+            sender.send_message(mail)
+            sender.close()
             st.success(f"Your order of{selected_symbol} was a success")
             st.write("Order ID:", order.id)
             st.write("Symbol:", order.symbol)
