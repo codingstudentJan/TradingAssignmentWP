@@ -28,11 +28,9 @@ def support_and_resistance_algorithm(option, sample_data):
             if support_levels[i] != [0, 0, 0]:
                 support_copy.append(support_levels[i])
         support_levels = []
-        print("Leere Support Levels", support_levels)
         for i in range(0, len(support_copy)):
             if support_copy[i][2] >= safe_extrema_number:
                 support_levels.append(support_copy[i])
-        print("Support Levels danach", support_levels)
         return support_levels
 
     def filling_resistance_levels(new_df, resistance_levels, bottom_factor, up_factor, safe_extrema_number):
@@ -52,12 +50,10 @@ def support_and_resistance_algorithm(option, sample_data):
                     resistance_levels[i][2] = resistance_levels[i][2] + 1
                     resistance_levels[j] = [0, 0, 0]
 
-        print("Resistance Levels davor", resistance_levels)
         for i in range(0, len(resistance_levels)):
             if resistance_levels[i] != [0, 0, 0]:
                 resistance_copy.append(resistance_levels[i])
         resistance_levels = []
-        print("Leere Support Levels", resistance_levels)
         for i in range(0, len(resistance_copy)):
             if resistance_copy[i][2] >= safe_extrema_number:
                 resistance_levels.append(resistance_copy[i])
@@ -108,8 +104,6 @@ def support_and_resistance_algorithm(option, sample_data):
                                         up_factor):
         last_entry = new_df.shape[0] - 1
         for level in support_levels:
-            print(new_df['datetime'][level[1]])
-            print(new_df['datetime'][last_entry])
             bottom_factor = bottom_factor
             up_factor = up_factor
             chart.add_shape(type="line", y0=level[0], y1=level[0],
@@ -133,7 +127,6 @@ def support_and_resistance_algorithm(option, sample_data):
 
     # Setup of the page and for computation with algorithm
     new_df = pd.DataFrame(sample_data)
-    print(new_df)
     support_levels = []
     resistance_levels = []
     # Setting the boundaries (percentage of price found as support/resistance) for rectangle zones of supports
@@ -184,7 +177,6 @@ def support_and_resistance_algorithm(option, sample_data):
     chart.add_scatter(x=new_df['datetime'], y=new_df['high'], mode='lines', line_color='violet',
                       name='Highest Price')
     # print(buy_signal_supports[1])
-    print(buy_signal_supports)
     if buy_signal_supports.shape[0] > 0:
         chart.add_scatter(x=buy_signal_supports['datetime'], y=buy_signal_supports['low'],
                           mode='markers', name='Buy Signals',

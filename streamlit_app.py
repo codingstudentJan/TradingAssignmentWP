@@ -30,7 +30,7 @@ def fetch(session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r'D:\New folder\TraderJoe\config.yaml') as file:
+with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -75,7 +75,7 @@ if authentication_status:
                 with col1:
                     start_date = st.date_input(
                         "At which date should the chart start?",
-                        datetime.date(2023, 4, 1))
+                        datetime.date(2023, 4, 27))
                 with col2:
                     end_date = st.date_input(
                         "At which date should the chart end?",
@@ -112,29 +112,31 @@ if authentication_status:
 
         # Navigation Bar
         with st.sidebar:
-            choose = option_menu("Trading Strategy", ["Support and Resistance", "Momentum", "Bollinger", "Paper Trading"],
-                                 icons=['pencil-fill', 'bar-chart-fill', 'bookmarks-fill',
-                                        'pencil-fill'],
-                                 menu_icon="coin", default_index=0,
-                                 )
+            choose = option_menu("Trading Strategy", ["Support and Resistance", "Momentum", "Bollinger", "Paper Trading","Account Details"])
+
 
         if choose == "Support and Resistance":
-            support_and_resistance_algorithm(option, sample_data)
+            try:
 
-
+                support_and_resistance_algorithm(option, sample_data)
+            except:
+                st.error("Please submit the form to see the results")
 
         elif choose == "Momentum":
             st.title('Momentum')
-
+            try:
             #Calling the momentum method
-            sample_data = apply_momentum_strategy(sample_data)
-            st.write(sample_data)
+                sample_data = apply_momentum_strategy(sample_data)
+                st.write(sample_data)
 
             # Create chart data from sample data
-            chart_data = st.line_chart(sample_data['Cumulative Returns'])
 
-            # Add buy and sell signals to chart data
-            chart_data = add_signals_to_chart(chart_data, sample_data)
+                chart_data = st.line_chart(sample_data['Cumulative Returns'])
+
+                    # Add buy and sell signals to chart data
+                chart_data = add_signals_to_chart(chart_data, sample_data)
+            except Exception:
+                    st.error("Please submit the form to see the results")
 
         elif choose == "Paper Trading":
             st.write('Paper Trading')
@@ -150,22 +152,51 @@ if authentication_status:
                 trading_platform(api_key, secret_key)
 
         elif choose == "Bollinger":
-            st.title("Bollinger Bands Breakout")
-            # sample_data = fetch(session, f"http://127.0.0.1:8084/investment/ETH-USD")
-            df = pd.DataFrame(sample_data)
-            rolling_mean, upper_band, lower_band = calc_bollinger_bands(df)
+            try:
+                st.title("Bollinger Bands Breakout")
+                # sample_data = fetch(session, f"http://127.0.0.1:8084/investment/ETH-USD")
+                df = pd.DataFrame(sample_data)
+                rolling_mean, upper_band, lower_band = calc_bollinger_bands(df)
 
-            buy_signal, sell_signal = bollinger_strategy_signals(upper_band, lower_band, df)
-            buy_markers, sell_markers = bollinger_marker_return(df, buy_signal, sell_signal)
+                buy_signal, sell_signal = bollinger_strategy_signals(upper_band, lower_band, df)
+                buy_markers, sell_markers = bollinger_marker_return(df, buy_signal, sell_signal)
 
-            fig = go.Figure()
-            draw_lines(df, fig, rolling_mean)
-            draw_bollinger_bands(fig, df, upper_band, lower_band)
-            draw_signals(fig, buy_markers, sell_markers)
-            fig.update_layout(title=option, xaxis_title='Timestamp', yaxis_title='Price')
-            st.plotly_chart(fig)
+                fig = go.Figure()
+                draw_lines(df, fig, rolling_mean)
+                draw_bollinger_bands(fig, df, upper_band, lower_band)
+                draw_signals(fig, buy_markers, sell_markers)
+                fig.update_layout(title=option, xaxis_title='Timestamp', yaxis_title='Price')
+                st.plotly_chart(fig)
+            except:
+                st.error("Please submit the form to see the results")
 
 
+        elif choose == "Account Details":
+            st.subheader("Account Details")
+            sample:dict = fetch(session,
+                           f"http://127.0.0.1:8084/investment/account")
+            print(type(sample))
+            sample = sample.get('_raw')
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write('Account Number: ')
+            with col2:
+                st.write(sample.get('account_number'))
+            col1,col2 = st.columns(2)
+            with col1:
+                st.write('Cash: ')
+            with col2:
+                st.write(sample.get('cash'))
+            col1,col2 = st.columns(2)
+            with col1:
+                st.write('Daytrade count: ')
+            with col2:
+                st.write(sample.get('daytrade_count'))
+            col1,col2 = st.columns(2)
+            with col1:
+                st.write('Status: ')
+            with col2:
+                st.write(sample.get('status'))
 
 
 

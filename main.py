@@ -55,7 +55,17 @@ def get_historical_data(symbol, start_date_time, end_date_time):
     new_df.rename(columns={'timestamp': 'datetime'}, inplace=True)
     print(new_df.to_string())
     return new_df
+def get_account_details():
+    api_key = 'PK7QBPXIS9I119J8USMT'
+    api_secret = 'FeDY72hqrSGKyySG56faJvLaqWiKymn0yLxcBMAY'
+    base_url = 'https://paper-api.alpaca.markets'
 
+    # instantiate REST API
+    api = tradeapi.REST(api_key, api_secret, base_url, api_version='v2')
+
+    # obtain account information
+    account = api.get_account()
+    return account
 
 @app.get('/investment/{symbol}/{start_date_time}/{end_date_time}', status_code=200)
 def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str):
@@ -65,6 +75,11 @@ def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str):
     print("ich hole Daten")
     print(end_date_time)
     return get_historical_data(symbol, start_date_time, end_date_time).to_json()
+
+@app.get('/investment/account')
+def get_details():
+    return get_account_details()
+
 
 # authentication and connection details
 
