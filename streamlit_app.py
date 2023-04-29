@@ -14,6 +14,9 @@ from streamlit_option_menu import option_menu
 from yaml.loader import SafeLoader
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
+from trading_platform_component import trading_platform
+from SessionState import SessionState
+
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
 
 
@@ -27,7 +30,7 @@ def fetch(session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
+with open(r'D:\New folder\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -57,9 +60,10 @@ if authentication_status:
         # with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
         #   st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
         st.title("Welcome to Prodigy Trade!")
-        filter_expander = st.expander(label="Click to filter")
+        # create a session state object to store sample_data
+        state = SessionState.get(sample_data=None)
+        filter_expander = st.sidebar.expander(label="Click to filter")
         with filter_expander:
-
             with st.container():
                 col1 = st.columns(1)
                 option = st.selectbox(
@@ -74,31 +78,41 @@ if authentication_status:
                         datetime.date(2023, 4, 1))
                 with col2:
                     end_date = st.date_input(
-                        "At whicht date should the chart end?",
-                        datetime.date(2023,4,28), max_value=datetime.date.today())
+                        "At which date should the chart end?",
+                        datetime.date(2023,4,28))
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
                     start_time = st.time_input("At which time should the chart start?", datetime.time(00, 00, 00))
                 with col2:
                     end_time = st.time_input("at which time should the chart end?", datetime.time(15,00,00))
-        temp_start_date_time = datetime.datetime.combine(start_date, start_time)
-        start_date_time = str(temp_start_date_time).replace(" ", "T") + "+00:00"
-        temp_end_date_time = datetime.datetime.combine(end_date, end_time)
-        new_temp_end_date_time = temp_end_date_time
-        end_date_time = str(new_temp_end_date_time).replace(" ", "T") + "+00:00"
-        print(start_date_time)
-        print(end_date_time)
-        sample = fetch(session,
-                       f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
-        sample_data = pd.read_json(sample, orient="columns")
-        if not sample_data.shape[0] > 0:
-            st.error("No Data, did you choose a too short timeframe?")
-        # st.write('You selected:', option)
+
+        if st.sidebar.button("Submit"):
+            temp_start_date_time = datetime.datetime.combine(start_date, start_time)
+            start_date_time = str(temp_start_date_time).replace(" ", "T") + "+00:00"
+            temp_end_date_time = datetime.datetime.combine(end_date, end_time)
+            new_temp_end_date_time = temp_end_date_time
+            end_date_time = str(new_temp_end_date_time).replace(" ", "T") + "+00:00"
+            print(start_date_time)
+            print(end_date_time)
+            sample = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
+            sample_data = pd.read_json(sample, orient="columns")
+
+             # update the session state with new sample_data
+            state.sample_data = sample_data
+
+        # use the session state to access sample_data
+        if state.sample_data is not None:
+            # do something with the sample_data
+              st.write("Data fetched!")
+        else:
+            st.write("Please submit the form to see results.")
+
+        sample_data = state.sample_data
 
         # Navigation Bar
         with st.sidebar:
-            choose = option_menu("Trading Strategy", ["Support and Resistance", "Momentum", "Bollinger"],
+            choose = option_menu("Trading Strategy", ["Support and Resistance", "Momentum", "Bollinger", "Paper Trading"],
                                  icons=['pencil-fill', 'bar-chart-fill', 'bookmarks-fill',
                                         'pencil-fill'],
                                  menu_icon="coin", default_index=0,
@@ -122,8 +136,18 @@ if authentication_status:
             # Add buy and sell signals to chart data
             chart_data = add_signals_to_chart(chart_data, sample_data)
 
+        elif choose == "Paper Trading":
+            st.write('Paper Trading')
+            st.write("Enter your Alpaca API and secret keys to get started.")
+            st.write("After authentication, you can enter your trading information and execute trades.")
 
+            # Create input fields for the user to enter their API and secret keys
+            api_key = st.text_input("Enter your Alpaca API key")
+            secret_key = st.text_input("Enter your Alpaca secret key")
 
+            # Call the trading_platform function with the user's API and secret keys
+            if api_key and secret_key:
+                trading_platform(api_key, secret_key)
 
         elif choose == "Bollinger":
             st.title("Bollinger Bands Breakout")
