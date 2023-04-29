@@ -27,7 +27,7 @@ def fetch(session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r'D:\New folder\TraderJoe\config.yaml') as file:
+with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml') as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -75,13 +75,13 @@ if authentication_status:
                 with col2:
                     end_date = st.date_input(
                         "At whicht date should the chart end?",
-                        datetime.date.today())
+                        datetime.date(2023,4,28))
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
                     start_time = st.time_input("At which time should the chart start?", datetime.time(00, 00, 00))
                 with col2:
-                    end_time = st.time_input("at which time should the chart end?", datetime.time(17,00,00))
+                    end_time = st.time_input("at which time should the chart end?", datetime.time(15,00,00))
         temp_start_date_time = datetime.datetime.combine(start_date, start_time)
         start_date_time = str(temp_start_date_time).replace(" ", "T") + "+00:00"
         temp_end_date_time = datetime.datetime.combine(end_date, end_time)
@@ -241,7 +241,7 @@ if authentication_status:
             up_line = 1.0007
 
             safe_extrema_number = st.number_input("Insert Safe Support/Resistance number", value=3, min_value=3,
-                                                  max_value=5, step=1,
+                                                  max_value=10, step=1,
                                                   help="This number should help you add or remove supports and "
                                                        "resistances, based on how many times they are found in the "
                                                        "datasaet. This number represents how many times they should be "
@@ -258,6 +258,25 @@ if authentication_status:
             remove_duplicate_resistances(bottom_line, resistance_levels, resistances_to_remove, support_levels, up_line)
             remove_duplicate_supports(bottom_line, resistance_levels, support_levels, supports_to_remove, up_line)
 
+            sell_signal_supports = pd.DataFrame()
+
+            for support in support_levels:
+                print(support[0])
+                for i in range(1,new_df.shape[0]):
+                    if new_df['low'][i-1] < (support[0] * bottom_line) and new_df['low'][i] > support[0] * bottom_line:
+                        sell_signal_supports = pd.concat([sell_signal_supports, new_df.iloc[[i]]])
+
+            buy_signal_supports = pd.DataFrame()
+            for support in support_levels:
+                print(support[0])
+                for i in range(1,new_df.shape[0]):
+                    if new_df['low'][i-1] > (support[0] * up_line) and new_df['low'][i] < support[0] * up_line:
+                        print("Bin drin")
+                        buy_signal_supports= pd.concat([buy_signal_supports, new_df.iloc[[i]]])
+            print("Buy signals", buy_signal_supports)
+
+
+
             # Generating the chart based on the Arrays and the Dataframe
             chart = px.line()
             chart.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
@@ -265,6 +284,22 @@ if authentication_status:
                               name='Lowest Price')
             chart.add_scatter(x=new_df['datetime'], y=new_df['high'], mode='lines', line_color='violet',
                               name='Highest Price')
+            #print(buy_signal_supports[1])
+            print(buy_signal_supports)
+            chart.add_scatter(x=buy_signal_supports['datetime'], y=buy_signal_supports['low'],
+                                mode='markers', name='Buy Signals',
+            marker=dict(
+                symbol='triangle-up',
+                size=8,
+                color='green'
+            ))
+            chart.add_scatter(x=sell_signal_supports['datetime'], y=sell_signal_supports['low'],
+                              mode='markers', name='Sell Signals',
+                              marker=dict(
+                                  symbol='triangle-down',
+                                  size=8,
+                                  color='red'
+                              ))
             adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_line, up_line)
             st.write(chart)
 
@@ -282,6 +317,7 @@ if authentication_status:
 
             # Add buy and sell signals to chart data
             chart_data = add_signals_to_chart(chart_data, sample_data)
+
 
 
 
