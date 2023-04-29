@@ -65,11 +65,13 @@ if authentication_status:
         filter_expander = st.sidebar.expander(label="Click to filter")
         with filter_expander:
             with st.container():
-                col1 = st.columns(1)
                 option = st.selectbox(
                     'Which Stock, Forex, Crypto, ETF, or indices would you like to trade?',
                     stocks_category.keys())
                 option = option.replace("/", "-")
+            with st.container():
+                trading_options = ["Minute Trading", "Hour Trading", "Day Trading"]
+                trading_option = st.selectbox(label="Select Trading Type",options=trading_options)
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
@@ -79,13 +81,14 @@ if authentication_status:
                 with col2:
                     end_date = st.date_input(
                         "At which date should the chart end?",
-                        datetime.date(2023,4,28))
+                        datetime.date(2023,4,28), max_value=datetime.date.today())
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
                     start_time = st.time_input("At which time should the chart start?", datetime.time(00, 00, 00))
                 with col2:
                     end_time = st.time_input("at which time should the chart end?", datetime.time(15,00,00))
+
 
         if st.sidebar.button("Submit"):
             temp_start_date_time = datetime.datetime.combine(start_date, start_time)
@@ -95,7 +98,8 @@ if authentication_status:
             end_date_time = str(new_temp_end_date_time).replace(" ", "T") + "+00:00"
             print(start_date_time)
             print(end_date_time)
-            sample = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
+
+            sample = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}/{trading_option}")
             sample_data = pd.read_json(sample, orient="columns")
 
              # update the session state with new sample_data
@@ -182,12 +186,20 @@ if authentication_status:
                 with col1:
                     st.write('Daytrade count: ')
                 with col2:
-                    st.write(sample.get('daytrade_count'))
+                    day_trade_count:int = sample.get('daytrade_count')
+                    st.write(str(day_trade_count))
                 col1,col2 = st.columns(2)
                 with col1:
                     st.write('Status: ')
                 with col2:
                     st.write(sample.get('status'))
+                col1,col2 = st.columns(2)
+                with col1:
+                    st.write("Portfolio development: ")
+
+                with col2:
+                    new_equity:float = float(sample.get('equity'))-float(sample.get('last_equity'))
+                    st.write(str(new_equity))
             with tab2:
                 st.subheader("Open Orders")
                 open_order = "open"
@@ -197,7 +209,7 @@ if authentication_status:
                 with col1:
                     st.write("Symbol")
                 with col2:
-                    st.write("Executed at")
+                    st.write("Executed at (UTC Time)")
                 for row in sample:
                     open_order:dict = row.get('_raw')
 
@@ -223,14 +235,12 @@ if authentication_status:
                 with col1:
                     st.write("Symbol")
                 with col2:
-                    st.write("Executed at")
+                    st.write("Executed at (UTC Time)")
                 if sample == []:
                     st.warning("No closed orders")
                 else:
                     for row in sample:
                         open_order:dict = row.get('_raw')
-
-
 
                     col1, col2 = st.columns(2)
                     with col1:

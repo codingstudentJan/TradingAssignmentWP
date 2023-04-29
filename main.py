@@ -19,7 +19,7 @@ app = FastAPI(title="Finance Application",
               version="1.0.0")
 
 
-def get_historical_data(symbol, start_date_time, end_date_time):
+def get_historical_data(symbol, start_date_time, end_date_time, trading_option):
     """
     api_key = 'f8f59ed60c3743328f18e9aa36ac1048'
     api_url = f'https://api.twelvedata.com/time_series?symbol={symbol}&interval=1day&outputsize=5000&apikey={api_key}'
@@ -46,7 +46,13 @@ def get_historical_data(symbol, start_date_time, end_date_time):
     account = api.get_account()
     print(account)
 
-    aapl = api.get_bars(symbol,TimeFrame.Minute, start= start_date_time, end=end_date_time).df
+    strategy = TimeFrame.Minute
+    if trading_option == "Hour Trading":
+        strategy = TimeFrame.Hour
+    elif trading_option == "Day Trading":
+        strategy = TimeFrame.Day
+
+    aapl = api.get_bars(symbol,strategy, start= start_date_time, end=end_date_time).df
     df = aapl.to_csv()
     f = open('asset_apple.csv','w')
     f.write(df)
@@ -82,14 +88,14 @@ def get_orders(status:str):
     print(orders_list)
     return orders_list
 
-@app.get('/investment/{symbol}/{start_date_time}/{end_date_time}', status_code=200)
-def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str):
-
+@app.get('/investment/{symbol}/{start_date_time}/{end_date_time}/{trading_option}', status_code=200)
+def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str, trading_option:str):
+    print(trading_option)
     print(symbol)
     symbol = symbol.replace("-", "/")
     print("ich hole Daten")
     print(end_date_time)
-    return get_historical_data(symbol, start_date_time, end_date_time).to_json()
+    return get_historical_data(symbol, start_date_time, end_date_time,trading_option).to_json()
 
 @app.get('/investment/account')
 def get_details():

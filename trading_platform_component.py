@@ -34,6 +34,7 @@ def trading_platform():
                 order = api.submit_order(symbol=selected_symbol, qty=qty, side='sell', type='market', time_in_force='day', order_class='simple')
 
             # Show the order details and current unrealized profit or loss
+            st.success(f"Your order of{selected_symbol} was a success")
             st.write("Order ID:", order.id)
             st.write("Symbol:", order.symbol)
             st.write("Quantity:", order.qty)
