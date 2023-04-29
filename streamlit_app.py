@@ -92,6 +92,8 @@ if authentication_status:
         sample = fetch(session,
                        f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}")
         sample_data = pd.read_json(sample, orient="columns")
+        if not sample_data.shape[0] > 0:
+            st.error("No Data, did you choose a too short timeframe?")
         # st.write('You selected:', option)
 
         # Navigation Bar
@@ -259,22 +261,29 @@ if authentication_status:
             remove_duplicate_supports(bottom_line, resistance_levels, support_levels, supports_to_remove, up_line)
 
             sell_signal_supports = pd.DataFrame()
+            buy_signal_supports = pd.DataFrame()
+            sell_signal_resistances = pd.DataFrame()
+            buy_signal_resistances = pd.DataFrame()
 
             for support in support_levels:
-                print(support[0])
                 for i in range(1,new_df.shape[0]):
                     if new_df['low'][i-1] < (support[0] * bottom_line) and new_df['low'][i] > support[0] * bottom_line:
                         sell_signal_supports = pd.concat([sell_signal_supports, new_df.iloc[[i]]])
 
-            buy_signal_supports = pd.DataFrame()
             for support in support_levels:
-                print(support[0])
                 for i in range(1,new_df.shape[0]):
                     if new_df['low'][i-1] > (support[0] * up_line) and new_df['low'][i] < support[0] * up_line:
-                        print("Bin drin")
-                        buy_signal_supports= pd.concat([buy_signal_supports, new_df.iloc[[i]]])
-            print("Buy signals", buy_signal_supports)
+                        buy_signal_supports= pd.concat([buy_signal_supports, new_df.iloc[[i-1]]])
 
+            for resistance in resistance_levels:
+                for i in range(1,new_df.shape[0]):
+                    if new_df['high'][i-1] < (resistance[0] * bottom_line) and new_df['high'][i] > resistance[0] * bottom_line:
+                        sell_signal_resistances = pd.concat([sell_signal_resistances, new_df.iloc[[i]]])
+
+            for resistance in resistance_levels:
+                for i in range(1,new_df.shape[0]):
+                    if new_df['high'][i-1] > (resistance[0] * up_line) and new_df['high'][i] < resistance[0] * up_line:
+                        buy_signal_resistances= pd.concat([buy_signal_resistances, new_df.iloc[[i-1]]])
 
 
             # Generating the chart based on the Arrays and the Dataframe
@@ -286,20 +295,38 @@ if authentication_status:
                               name='Highest Price')
             #print(buy_signal_supports[1])
             print(buy_signal_supports)
-            chart.add_scatter(x=buy_signal_supports['datetime'], y=buy_signal_supports['low'],
-                                mode='markers', name='Buy Signals',
-            marker=dict(
-                symbol='triangle-up',
-                size=8,
-                color='green'
-            ))
-            chart.add_scatter(x=sell_signal_supports['datetime'], y=sell_signal_supports['low'],
-                              mode='markers', name='Sell Signals',
-                              marker=dict(
-                                  symbol='triangle-down',
-                                  size=8,
-                                  color='red'
-                              ))
+            if buy_signal_supports.shape[0] > 0:
+                chart.add_scatter(x=buy_signal_supports['datetime'], y=buy_signal_supports['low'],
+                                    mode='markers', name='Buy Signals',
+                marker=dict(
+                    symbol='triangle-up',
+                    size=8,
+                    color='green'
+                ))
+            if sell_signal_supports.shape[0] > 0:
+                chart.add_scatter(x=sell_signal_supports['datetime'], y=sell_signal_supports['low'],
+                                  mode='markers', name='Sell Signals',
+                                  marker=dict(
+                                      symbol='triangle-down',
+                                      size=8,
+                                      color='red'
+                                  ))
+            if buy_signal_resistances.shape[0] > 0:
+                chart.add_scatter(x=buy_signal_resistances['datetime'], y=buy_signal_resistances['high'],
+                                  mode='markers', name='Buy Signals',
+                                  marker=dict(
+                                      symbol='triangle-up',
+                                      size=8,
+                                      color='green'
+                                  ))
+            if sell_signal_resistances.shape[0] > 0:
+                chart.add_scatter(x=sell_signal_resistances['datetime'], y=sell_signal_resistances['high'],
+                                  mode='markers', name='Sell Signals',
+                                  marker=dict(
+                                      symbol='triangle-down',
+                                      size=8,
+                                      color='red'
+                                  ))
             adding_support_resistance_lines(chart, new_df, resistance_levels, support_levels, bottom_line, up_line)
             st.write(chart)
 
