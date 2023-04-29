@@ -102,11 +102,6 @@ if authentication_status:
             state.sample_data = sample_data
 
         # use the session state to access sample_data
-        if state.sample_data is not None:
-            # do something with the sample_data
-              st.write("Data fetched!")
-        else:
-            st.write("Please submit the form to see results.")
 
         sample_data = state.sample_data
 
@@ -120,7 +115,7 @@ if authentication_status:
 
                 support_and_resistance_algorithm(option, sample_data)
             except:
-                st.error("Please submit the form to see the results")
+                st.warning("Please submit the form to see the results")
 
         elif choose == "Momentum":
             st.title('Momentum')
@@ -136,7 +131,7 @@ if authentication_status:
                     # Add buy and sell signals to chart data
                 chart_data = add_signals_to_chart(chart_data, sample_data)
             except Exception:
-                    st.error("Please submit the form to see the results")
+                    st.warning("Please submit the form to see the results")
 
         elif choose == "Paper Trading":
             st.write('Paper Trading')
@@ -144,12 +139,7 @@ if authentication_status:
             st.write("After authentication, you can enter your trading information and execute trades.")
 
             # Create input fields for the user to enter their API and secret keys
-            api_key = st.text_input("Enter your Alpaca API key")
-            secret_key = st.text_input("Enter your Alpaca secret key")
-
-            # Call the trading_platform function with the user's API and secret keys
-            if api_key and secret_key:
-                trading_platform(api_key, secret_key)
+            trading_platform()
 
         elif choose == "Bollinger":
             try:
@@ -168,35 +158,89 @@ if authentication_status:
                 fig.update_layout(title=option, xaxis_title='Timestamp', yaxis_title='Price')
                 st.plotly_chart(fig)
             except:
-                st.error("Please submit the form to see the results")
+                st.warning("Please submit the form to see the results")
 
 
         elif choose == "Account Details":
-            st.subheader("Account Details")
-            sample:dict = fetch(session,
-                           f"http://127.0.0.1:8084/investment/account")
-            print(type(sample))
-            sample = sample.get('_raw')
-            col1, col2 = st.columns(2)
-            with col1:
-                st.write('Account Number: ')
-            with col2:
-                st.write(sample.get('account_number'))
-            col1,col2 = st.columns(2)
-            with col1:
-                st.write('Cash: ')
-            with col2:
-                st.write(sample.get('cash'))
-            col1,col2 = st.columns(2)
-            with col1:
-                st.write('Daytrade count: ')
-            with col2:
-                st.write(sample.get('daytrade_count'))
-            col1,col2 = st.columns(2)
-            with col1:
-                st.write('Status: ')
-            with col2:
-                st.write(sample.get('status'))
+            tab1, tab2, tab3 = st.tabs(["Account Details", "Open Orders", "Closed Orders"])
+            with tab1:
+                st.subheader("Account Details")
+                sample:dict = fetch(session,
+                               f"http://127.0.0.1:8084/investment/account")
+                sample = sample.get('_raw')
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write('Account Number: ')
+                with col2:
+                    st.write(sample.get('account_number'))
+                col1,col2 = st.columns(2)
+                with col1:
+                    st.write('Cash: ')
+                with col2:
+                    st.write(sample.get('cash'))
+                col1,col2 = st.columns(2)
+                with col1:
+                    st.write('Daytrade count: ')
+                with col2:
+                    st.write(sample.get('daytrade_count'))
+                col1,col2 = st.columns(2)
+                with col1:
+                    st.write('Status: ')
+                with col2:
+                    st.write(sample.get('status'))
+            with tab2:
+                st.subheader("Open Orders")
+                open_order = "open"
+                sample: dict = fetch(session,
+                                     f"http://127.0.0.1:8084/investment/orders/{open_order}")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write("Symbol")
+                with col2:
+                    st.write("Executed at")
+                for row in sample:
+                    open_order:dict = row.get('_raw')
+
+
+                    col1,col2 = st.columns(2)
+                    with col1:
+                        st.write(open_order.get('symbol'))
+                    with col2:
+                        date:str = open_order.get('submitted_at')
+                        date = date.replace("T", " ")
+                        date = date.removesuffix("Z")
+                        date = date.split(".")[0]
+                        st.write(date)
+
+
+            with tab3:
+                st.subheader("Closed Orders")
+                closed = 'closed'
+                sample: dict = fetch(session,
+                                     f"http://127.0.0.1:8084/investment/orders/{closed}")
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.write("Symbol")
+                with col2:
+                    st.write("Executed at")
+                if sample == []:
+                    st.warning("No closed orders")
+                else:
+                    for row in sample:
+                        open_order:dict = row.get('_raw')
+
+
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(open_order.get('symbol'))
+                    with col2:
+                        date: str = open_order.get('submitted_at')
+                        date = date.replace("T", " ")
+                        date = date.removesuffix("Z")
+                        date = date.split(".")[0]
+                        st.write(date)
 
 
 

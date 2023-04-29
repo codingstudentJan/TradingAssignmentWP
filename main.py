@@ -67,6 +67,21 @@ def get_account_details():
     account = api.get_account()
     return account
 
+def get_orders(status:str):
+    api_key = 'PK7QBPXIS9I119J8USMT'
+    api_secret = 'FeDY72hqrSGKyySG56faJvLaqWiKymn0yLxcBMAY'
+    base_url = 'https://paper-api.alpaca.markets'
+
+    # instantiate REST API
+    api = tradeapi.REST(api_key, api_secret, base_url, api_version='v2')
+    orders_list = api.list_orders(
+        status=status,
+        limit=100,
+        nested=True  # show nested multi-leg orders
+    )
+    print(orders_list)
+    return orders_list
+
 @app.get('/investment/{symbol}/{start_date_time}/{end_date_time}', status_code=200)
 def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str):
 
@@ -79,6 +94,10 @@ def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str):
 @app.get('/investment/account')
 def get_details():
     return get_account_details()
+
+@app.get('/investment/orders/{status}')
+def get_order_by_status(status:str):
+    return get_orders(status)
 
 
 # authentication and connection details

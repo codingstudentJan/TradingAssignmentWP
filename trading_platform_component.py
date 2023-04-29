@@ -2,11 +2,12 @@ import streamlit as st
 import alpaca_trade_api as tradeapi
 import time
 
-def trading_platform(api_key, secret_key):
+def trading_platform():
     # Set the API endpoint to the Alpaca paper trading endpoint
     endpoint = 'https://paper-api.alpaca.markets'
     api_version = 'v2'
-
+    api_key = 'PK7QBPXIS9I119J8USMT'
+    secret_key = 'FeDY72hqrSGKyySG56faJvLaqWiKymn0yLxcBMAY'
     # Authenticate the user's API keys using the paper trading endpoint
     if api_key and secret_key:
         api = tradeapi.REST(api_key, secret_key, base_url=endpoint, api_version=api_version)
