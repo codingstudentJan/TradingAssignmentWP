@@ -1,5 +1,7 @@
 import datetime
 import os
+import toml
+import openai
 from math import floor
 from typing import List
 
@@ -13,6 +15,9 @@ import yaml
 from streamlit_authenticator import Authenticate
 from streamlit_option_menu import option_menu
 from yaml.loader import SafeLoader
+from streamlit_chat import message
+
+from main import get_account_details
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
@@ -110,15 +115,68 @@ if authentication_status:
         # Navigation Bar
         with st.sidebar:
             choose = option_menu("Trading Strategy",
-                                 ["Support and Resistance", "Momentum", "Bollinger", "Paper Trading",
+                                 ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger", "Paper Trading",
                                   "Account Details"])
 
-        if choose == "Support and Resistance":
+        if choose == "Home":
+            st.header("Hallo")
+
+        elif choose == "Chat Bot":
+            st.header("Chat-Bot")
+            with open(".secrets.toml", "r") as f:
+                config = toml.load(f)
+            openai.api_key = config["OPENAI_KEY"]
+
+            def generate_response(prompt):
+                completions = openai.Completion.create(
+                    engine="text-davinci-003",
+                    prompt=prompt,
+                    max_tokens=1024,
+                    n=1,
+                    stop=None,
+                    temperature=0.5,
+                )
+                message = completions.choices[0].text
+                return message
+
+            # Creating the chatbot interface
+            st.title("chatBot : Streamlit + openAI")
+
+            # Storing the chat
+            if 'generated' not in st.session_state:
+                st.session_state['generated'] = []
+
+            if 'past' not in st.session_state:
+                st.session_state['past'] = []
+
+            # We will get the user's input by calling the get_text function
+            def get_text():
+                input_text = st.text_input("You: ", "Hello, how are you?", key="input")
+                return input_text
+
+            user_input = get_text()
+
+            if user_input:
+                output = generate_response(user_input)
+                # store the output
+                st.session_state.past.append(user_input)
+                st.session_state.generated.append(output)
+
+            if st.session_state['generated']:
+
+                for i in range(len(st.session_state['generated']) - 1, -1, -1):
+                    message(st.session_state["generated"][i], key=str(i))
+                    message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
+
+
+        elif choose == "Support and Resistance":
             try:
 
                 support_and_resistance_algorithm(option, sample_data)
             except:
                 st.warning("Please submit the form to see the results")
+
+
 
         elif choose == "Momentum":
             st.title('Momentum')
@@ -255,7 +313,6 @@ if authentication_status:
                         date = date.removesuffix("Z")
                         date = date.split(".")[0]
                         st.write(date)
-
 
     # ------METHODS--------------------
 
