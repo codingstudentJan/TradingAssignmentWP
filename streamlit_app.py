@@ -45,15 +45,10 @@ with open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.ya
 
 session = requests.Session()
 
+stocks_list = fetch(session, f"http://127.0.0.1:8084/investment/assets")
+#print(stocks_list)
 # dictionary for the categories
-stocks_category = {
-    'Stocks Apple': 'AAPL',
-    'Stocks Amazon': 'AMZN',
-    'Stocks META': 'META',
-    'Stocks Microsoft': 'MSFT',
-    'Stocks Tesla': 'TSLA',
-    'ETF SPDR S&P 500 ETF Trust': 'SPY',
-}
+stocks_category = stocks_list
 if authentication_status:
     def main():
         authenticator.logout('Logout', 'sidebar')
@@ -100,14 +95,19 @@ if authentication_status:
             print(end_date_time)
 
             sample = fetch(session, f"http://127.0.0.1:8084/investment/{stocks_category[option]}/{start_date_time}/{end_date_time}/{trading_option}")
-            sample_data = pd.read_json(sample, orient="columns")
+            try:
+                sample_data = pd.read_json(sample, orient="columns")
+                state.sample_data = sample_data
+                sample_data = state.sample_data
+            except:
+                st.error("Sorry, no data available. We are working on it")
 
              # update the session state with new sample_data
-            state.sample_data = sample_data
+
 
         # use the session state to access sample_data
 
-        sample_data = state.sample_data
+
 
         # Navigation Bar
         with st.sidebar:
@@ -205,19 +205,26 @@ if authentication_status:
                 open_order = "open"
                 sample: dict = fetch(session,
                                      f"http://127.0.0.1:8084/investment/orders/{open_order}")
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     st.write("Symbol")
                 with col2:
+                    st.write("Quantity")
+                with col3:
                     st.write("Executed at (UTC Time)")
+
+                if sample == []:
+                    st.warning("No open orders")
                 for row in sample:
                     open_order:dict = row.get('_raw')
 
 
-                    col1,col2 = st.columns(2)
+                    col1,col2, col3 = st.columns(3)
                     with col1:
                         st.write(open_order.get('symbol'))
                     with col2:
+                        st.write(open_order.get('qty'))
+                    with col3:
                         date:str = open_order.get('submitted_at')
                         date = date.replace("T", " ")
                         date = date.removesuffix("Z")

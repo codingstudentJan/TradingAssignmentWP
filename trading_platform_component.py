@@ -26,7 +26,7 @@ def trading_platform():
         # Get the symbol corresponding to the selected name
         selected_symbol = [k for k, v in symbols_to_names.items() if v == symbol][0]
         side = st.selectbox("Select the side", ("Buy", "Sell"))
-        qty = st.number_input("Quantity", value=1, min_value=1)
+        qty = st.number_input("Quantity", value=0.001, min_value=0.001, step=0.001)
 
         # Execute the trade when the "Execute Trade" button is clicked
         if st.button("Execute Trade"):
@@ -38,14 +38,14 @@ def trading_platform():
             # Show the order details and current unrealized profit or loss
             text = f"Your order of{selected_symbol} was a success"
             mail = MIMEText(text)
-            mail['Subject'] = f"Your order{selected_symbol}"
+            mail['Subject'] = f"Your order {selected_symbol}"
             mail['From'] = 'jan@juergenberger.de'
             mail['To'] = 'jan@juergenberger.de'
             sender = smtplib.SMTP("smtp.ionos.de",587)
             sender.ehlo()
             sender.starttls()
             sender.ehlo()
-            sender.login('jan@juergenberger.de','')
+            sender.login('jan@juergenberger.de',)
             sender.send_message(mail)
             sender.close()
             st.success(f"Your order of{selected_symbol} was a success")

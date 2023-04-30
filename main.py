@@ -88,13 +88,31 @@ def get_orders(status:str):
     print(orders_list)
     return orders_list
 
+def get_asset_list():
+    endpoint = 'https://paper-api.alpaca.markets'
+    api_version = 'v2'
+    api_key = 'PK7QBPXIS9I119J8USMT'
+    secret_key = 'FeDY72hqrSGKyySG56faJvLaqWiKymn0yLxcBMAY'
+    # Authenticate the user's API keys using the paper trading endpoint
+    if api_key and secret_key:
+        api = tradeapi.REST(api_key, secret_key, base_url=endpoint, api_version=api_version)
+
+        # Get a list of available assets from Alpaca
+        assets = api.list_assets()
+        asset_dict:dict = {}
+        for asset in assets:
+            if asset.tradable:
+                asset_dict[f'{asset.name}'] = asset.symbol
+        return asset_dict
+
 @app.get('/investment/{symbol}/{start_date_time}/{end_date_time}/{trading_option}', status_code=200)
 def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str, trading_option:str):
     print(trading_option)
     print(symbol)
-    symbol = symbol.replace("-", "/")
+    #symbol = symbol.replace("-", "/")
     print("ich hole Daten")
     print(end_date_time)
+    get_asset_list()
     return get_historical_data(symbol, start_date_time, end_date_time,trading_option).to_json()
 
 @app.get('/investment/account')
@@ -105,6 +123,9 @@ def get_details():
 def get_order_by_status(status:str):
     return get_orders(status)
 
+@app.get('/investment/assets')
+def get_all_assets():
+    return get_asset_list()
 
 # authentication and connection details
 
