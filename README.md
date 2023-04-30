@@ -15,11 +15,21 @@ and all this dependencies installed:
     pip install alpaca-py
     pip install streamlit-authenticator
     Pip install ta
+    pip install openai
+    pip install streamlit-chat
 ```
 
 Config file aktualisieren in Streamlit_app file
 
 Login Data: cPerrot, abc123
+
+Prodigy Trade Email Account
+- ProdigyTradeDHBW@gmail.com
+- abc123!*
+- 01.01.2000
+
+Sollte bei gmail dieser sein: smtp-relay.gmail.com
+oder smtp.gmail.com
 
 - To run the application, input following commands in separate terminals (both must be active):
 ```bash

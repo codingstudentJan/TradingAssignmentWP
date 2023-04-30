@@ -1,20 +1,51 @@
 import numpy as np
-from ta.momentum import StochasticOscillator
-from ta.trend import MACD
 import plotly.graph_objs as go
 
-# Define function to get data and apply momentum strategy
+def calculate_stochastic(df, n=14):
+    """
+    Calculates the Stochastic Oscillator for a given DataFrame.
+
+    Parameters:
+    df (pandas.DataFrame): DataFrame with columns for 'high', 'low', and 'close' prices.
+    n (int): The number of periods to use for calculating the Stochastic Oscillator. Default is 14.
+
+    Returns:
+    pandas.DataFrame: DataFrame with columns for '%K' and '%D' values.
+    """
+    # Calculate the lowest low and highest high over the past n periods
+    lowest_low = df['low'].rolling(window=n, min_periods=0).min()
+    highest_high = df['high'].rolling(window=n, min_periods=0).max()
+
+    # Calculate the %K value
+    k_percent = 100 * ((df['close'] - lowest_low) / (highest_high - lowest_low))
+
+    # Calculate the %D value using a 3-period simple moving average
+    d_percent = k_percent.rolling(window=3, min_periods=0).mean()
+
+    # Add the %K and %D values to the DataFrame
+    df['%K'] = k_percent
+    df['%D'] = d_percent
+
+    return df[['%K', '%D']]
+
 def apply_momentum_strategy(df):
     # Calculate Stochastic Oscillator
-    stoch = StochasticOscillator(high=df['high'], low=df['low'], close=df['close'], window=14, smooth_window=3)
-    df['%K'] = stoch.stoch()
-    df['%D'] = stoch.stoch_signal()
+    stochastic_df = calculate_stochastic(df, n=14)
+    df['%K'] = stochastic_df['%K']
+    df['%D'] = stochastic_df['%D']
 
-     # Calculate MACD
-    macd = MACD(df['close'], window_slow=26, window_fast=12, window_sign=9)
-    df['MACD'] = macd.macd()
-    df['Signal'] = macd.macd_signal()
-    df['Histogram'] = macd.macd_diff()
+    # Calculate MACD
+    slow_window = 26
+    fast_window = 12
+    signal_window = 9
+    exp1 = df['close'].ewm(span=fast_window, adjust=False).mean()
+    exp2 = df['close'].ewm(span=slow_window, adjust=False).mean()
+    macd = exp1 - exp2
+    signal = macd.ewm(span=signal_window, adjust=False).mean()
+    histogram = macd - signal
+    df['MACD'] = macd
+    df['Signal'] = signal
+    df['Histogram'] = histogram
 
     # Buy when %K is above %D and both are below 20
     df['Signal'] = np.where((df['%K'] > df['%D']) & (df['%K'] < 20) & (df['%D'] < 20), 1, 0)

@@ -23,6 +23,7 @@ from SessionState import SessionState
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
+from bollinger_band import draw_lines, draw_bollinger_bands, draw_signals, calc_bollinger_bands, bollinger_marker_return, bollinger_strategy_signals
 
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
 
@@ -40,7 +41,7 @@ def fetch(_session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml") as file:
+with open(r"D:\New folder\TraderJoe\config.yaml") as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -152,7 +153,7 @@ if authentication_status:
             st.write(fig)
 
             st.header("Strategies we use in our web-application: ")
-            st.subheader("Breakout out strategy")
+            st.subheader("Support and Resistance")
             st.write(
                 "Breakouts in trading occur when a stock, commodity, or currency moves beyond a previously established range. This indicates a shift in market sentiment and can lead to sustained trends in the direction of the breakout. Traders can use breakouts as a signal to enter a trade, but must exercise caution as false breakouts can lead to losses. If the price breaks through a resistance level, buyers have gained control and an uptrend may occur, while breaking through a support level suggests sellers have gained control and a downtrend may occur.")
 
@@ -160,7 +161,7 @@ if authentication_status:
             st.write(
                 "Bollinger Bands use a simple moving average and two standard deviations to identify overbought and oversold assets, and can be adjusted to user preferences. They expand and contract with volatility, indicating relative volatility and potential trend reversals. When the price moves outside the upper or lower band, it signals a potential trend reversal or continuation. If the price moves above the upper band, it's overbought, prompting a short position or sell, while a move below the lower band indicates oversold, prompting a long position or buy.")
 
-            st.subheader("Support and Ressistance")
+            st.subheader("Momentum (Stochastic and MACD)")
             st.write(
                 "The Stochastic oscillator identifies overbought and oversold market conditions to predict price reversals, often used with the MACD to confirm trends. The %K and D% lines make up the Stochastic oscillator, with values above 80 indicating overbought and below 20 indicating oversold conditions. The MACD and signal lines indicate trend direction, with an upward trend suggested by a crossing of the MACD above the signal line and a downward trend suggested by the opposite.")
 
@@ -168,7 +169,7 @@ if authentication_status:
 
         elif choose == "Chat Bot":
             st.title("Chat-Bot")
-            with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\.secrets.toml", "r") as f:
+            with open(r"D:\New folder\TraderJoe\.secrets.toml", "r") as f:
                 config = toml.load(f)
             openai.api_key = config["OPENAI_KEY"]
 
@@ -255,14 +256,11 @@ if authentication_status:
             st.title('Paper Trading')
             st.write('In this section you can buy or sell your equities')
 
-            # Create input fields for the user to enter their API and secret keys
             trading_platform()
 
         elif choose == "Bollinger":
             st.title("Bollinger Bands Breakout")
             try:
-
-                # sample_data = fetch(session, f"http://127.0.0.1:8084/investment/ETH-USD")
                 df = pd.DataFrame(sample_data)
                 rolling_mean, upper_band, lower_band = calc_bollinger_bands(df)
 
@@ -273,7 +271,7 @@ if authentication_status:
                 draw_lines(df, fig, rolling_mean)
                 draw_bollinger_bands(fig, df, upper_band, lower_band)
                 draw_signals(fig, buy_markers, sell_markers)
-                fig.update_layout(title=option, xaxis_title='Timestamp', yaxis_title='Price')
+                fig.update_layout(title=option, xaxis_title='Date', yaxis_title='Price')
                 st.plotly_chart(fig)
             except:
                 st.warning("No data available. We are working on it.")
@@ -384,93 +382,6 @@ if authentication_status:
                         date = date.removesuffix("Z")
                         date = date.split(".")[0]
                         st.write(date)
-
-
-    # ------METHODS--------------------
-
-    # ------------------------------------------------------------------------------
-
-    # Resistance and Support Indicator
-
-    # -------------------------------------------------------------------
-    # Bollinger Bands
-    # -------------------------------------------------------------------
-    def draw_lines(df, fig, rolling_mean):
-        fig.add_trace(go.Scatter(x=df.index, y=df['close'], mode='lines', name='Close'))
-        fig.add_trace(go.Scatter(x=df.index, y=rolling_mean, mode='lines', name='Rolling Mean'))
-        return fig
-
-
-    def draw_bollinger_bands(fig, df, upper_band, lower_band):
-        fig.add_trace(go.Scatter(x=df.index, y=upper_band, mode='lines', name='Upper Band'))
-        fig.add_trace(go.Scatter(x=df.index, y=lower_band, mode='lines', name='Lower Band'))
-        return fig
-
-
-    def draw_signals(fig, buy_markers, sell_markers):
-        fig.add_trace(buy_markers)
-        fig.add_trace(sell_markers)
-        return fig
-
-
-    def calc_bollinger_bands(df, window_size=20, num_std=2):
-        rolling_mean = df["close"].rolling(window=window_size).mean()
-        rolling_std = df["close"].rolling(window=window_size).std()
-        upper_band = rolling_mean + (rolling_std * num_std)
-        lower_band = rolling_mean - (rolling_std * num_std)
-
-        return rolling_mean, upper_band, lower_band
-
-
-    def bollinger_marker_return(df, buy_signal, sell_signal):
-        buy_markers = go.Scatter(
-            x=df.index,
-            y=buy_signal,
-            mode='markers',
-            name='Buy Signals',
-            marker=dict(
-                symbol='triangle-up',
-                size=10,
-                color='green'
-            )
-        )
-
-        sell_markers = go.Scatter(
-            x=df.index,
-            y=sell_signal,
-            mode='markers',
-            name='Sell Signals',
-            marker=dict(
-                symbol='triangle-down',
-                size=10,
-                color='red'
-            )
-        )
-
-        return buy_markers, sell_markers
-
-
-    def bollinger_strategy_signals(upper_band, lower_band, df):
-        buy_signal = []
-        sell_signal = []
-        for i in range(len(df)):
-            if df['close'][i] > upper_band[i]:
-                sell_signal.append(np.nan)
-                if i > 0 and df['close'][i - 1] <= upper_band[i - 1]:
-                    buy_signal.append(df['close'][i])
-                else:
-                    buy_signal.append(np.nan)
-            elif df['close'][i] < lower_band[i]:
-                buy_signal.append(np.nan)
-                if i > 0 and df['close'][i - 1] >= lower_band[i - 1]:
-                    sell_signal.append(df['close'][i])
-                else:
-                    sell_signal.append(np.nan)
-            else:
-                buy_signal.append(np.nan)
-                sell_signal.append(np.nan)
-        return buy_signal, sell_signal
-
 
     if __name__ == '__main__':
         main()
