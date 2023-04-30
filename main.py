@@ -1,11 +1,12 @@
+import alpaca_trade_api
 import pandas as pd
 import requests
+import sys
 import uvicorn
 from alpaca_trade_api.rest import TimeFrame
 from fastapi import FastAPI
 import alpaca_trade_api as tradeapi
-
-
+from pandas import DataFrame
 
 app = FastAPI(title="Finance Application",
               description="""Trading App \n
@@ -42,9 +43,7 @@ def get_historical_data(symbol, start_date_time, end_date_time, trading_option):
     # instantiate REST API
     api = tradeapi.REST(api_key, api_secret, base_url, api_version='v2')
 
-    # obtain account information
-    account = api.get_account()
-    print(account)
+
 
     strategy = TimeFrame.Minute
     if trading_option == "Hour Trading":
@@ -56,11 +55,15 @@ def get_historical_data(symbol, start_date_time, end_date_time, trading_option):
     df = aapl.to_csv()
     f = open('asset_apple.csv','w')
     f.write(df)
-    new_df = pd.read_csv('asset_apple.csv')
-    print()
-    new_df.rename(columns={'timestamp': 'datetime'}, inplace=True)
-    print(new_df.to_string())
-    return new_df
+    try:
+        new_df = pd.read_csv('asset_apple.csv')
+        print()
+        new_df.rename(columns={'timestamp': 'datetime'}, inplace=True)
+        print(new_df.to_string())
+        return new_df
+    except:
+        new_df = pd.DataFrame()
+        return new_df
 def get_account_details():
     api_key = 'PK7QBPXIS9I119J8USMT'
     api_secret = 'FeDY72hqrSGKyySG56faJvLaqWiKymn0yLxcBMAY'
@@ -85,7 +88,7 @@ def get_orders(status:str):
         limit=100,
         nested=True  # show nested multi-leg orders
     )
-    print(orders_list)
+    #print(orders_list)
     return orders_list
 
 def get_asset_list():
@@ -105,6 +108,18 @@ def get_asset_list():
                 asset_dict[f'{asset.name}'] = asset.symbol
         return asset_dict
 
+def portfolio_history():
+    api_key = 'PK7QBPXIS9I119J8USMT'
+    api_secret = 'FeDY72hqrSGKyySG56faJvLaqWiKymn0yLxcBMAY'
+    base_url = 'https://paper-api.alpaca.markets'
+
+    print('Ich wurde ausgeführt')
+    # instantiate REST API
+    api = tradeapi.REST(api_key, api_secret, base_url, api_version='v2')
+    portfolio_history:alpaca_trade_api.entity.PortfolioHistory = api.get_portfolio_history(date_start="2023-03-14")
+    return portfolio_history
+
+
 @app.get('/investment/{symbol}/{start_date_time}/{end_date_time}/{trading_option}', status_code=200)
 def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str, trading_option:str):
     print(trading_option)
@@ -117,6 +132,7 @@ def get_all_transactions(symbol: str, start_date_time:str, end_date_time: str, t
 
 @app.get('/investment/account')
 def get_details():
+    #portfolio_history()
     return get_account_details()
 
 @app.get('/investment/orders/{status}')
@@ -126,6 +142,10 @@ def get_order_by_status(status:str):
 @app.get('/investment/assets')
 def get_all_assets():
     return get_asset_list()
+
+@app.get('/investment/portfolio_history')
+def get_portfolio_history():
+    return portfolio_history()
 
 # authentication and connection details
 
