@@ -25,6 +25,8 @@ from SessionState import SessionState
 
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
 
+random_stock_pick_array = []
+
 
 def fetch(session, url):
     try:
@@ -52,14 +54,12 @@ with open(os.getcwd() + "\config.yaml") as file:
 session = requests.Session()
 
 stocks_list = fetch(session, f"http://127.0.0.1:8084/investment/assets")
-# print(stocks_list)
+
 # dictionary for the categories
 stocks_category = stocks_list
 if authentication_status:
     def main():
         authenticator.logout('Logout', 'sidebar')
-        # with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
-        #   st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
         # create a session state object to store sample_data
         state = SessionState.get(sample_data=None)
@@ -115,18 +115,44 @@ if authentication_status:
         # Navigation Bar
         with st.sidebar:
             choose = option_menu("Prodigy Menu",
-                                 ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger", "Paper Trading",
+                                 ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger",
+                                  "Paper Trading",
                                   "Account Details"],
                                  icons=["house", "robot", "", "", "", "wallet", "people"])
 
         if choose == "Home":
             st.title("Welcome to Prodigy Trade!")
             st.header("Crack the Market with Prodigy Trade")
-            st.write("Prodigy Trade is a cutting-edge web application designed for traders who want to stay ahead of the game. It offers real-time trading data and advanced charting tools to help traders make informed decisions. With Prodigy Trade, users can access a wide range of markets, including stocks, futures, forex, and more. The platform also features customizable watchlists, alerts, and a social trading community where users can share ideas and strategies with other traders. Prodigy Trade is user-friendly and accessible on desktop and mobile devices, making it a convenient and powerful tool for traders of all levels.")
+            st.write(
+                "Prodigy Trade is a cutting-edge web application designed for traders who want to stay ahead of the game. It offers real-time trading data and advanced charting tools to help traders make informed decisions. With Prodigy Trade, users can access a wide range of markets, including stocks, futures, forex, and more. The platform also features customizable watchlists, alerts, and a social trading community where users can share ideas and strategies with other traders. Prodigy Trade is user-friendly and accessible on desktop and mobile devices, making it a convenient and powerful tool for traders of all levels.")
+
+            stock_symbol_rdm = "AAPL"
+
+            end_dt_rdm = datetime.datetime.today() - datetime.timedelta(hours=10)
+            end_date_time_rdm = str(end_dt_rdm).replace(" ", "T") + "+00:00"
+            st.write(end_date_time_rdm)
+
+            start_dt_rdm = end_dt_rdm - datetime.timedelta(hours=50)
+            start_date_time_rdm = str(start_dt_rdm).replace(" ", "T") + "+00:00"
+            st.write(start_date_time_rdm)
+
+            sample = fetch(session,
+                           f"http://127.0.0.1:8084/investment/{stock_symbol_rdm}/{start_date_time_rdm}/{end_date_time_rdm}/Minute Trading")
+            rdm_df = pd.read_json(sample, orient="columns")
+            state.rdm_df = rdm_df
+            rdm_df = state.rdm_df
+            print(rdm_df)
+
+            fig = px.line(rdm_df, x=rdm_df["datetime"], y=rdm_df['vwap'], title=f"{stock_symbol_rdm}")
+            fig.update_layout(
+                xaxis_title="Date", yaxis_title="Price"
+            )
+            st.write(fig)
 
             st.header("Strategies we use in our web-application: ")
             st.subheader("Breakout out strategy")
-            st.write("Breakouts in trading occur when a stock, commodity, or currency moves beyond a previously established range. This indicates a shift in market sentiment and can lead to sustained trends in the direction of the breakout. Traders can use breakouts as a signal to enter a trade, but must exercise caution as false breakouts can lead to losses. If the price breaks through a resistance level, buyers have gained control and an uptrend may occur, while breaking through a support level suggests sellers have gained control and a downtrend may occur.")
+            st.write(
+                "Breakouts in trading occur when a stock, commodity, or currency moves beyond a previously established range. This indicates a shift in market sentiment and can lead to sustained trends in the direction of the breakout. Traders can use breakouts as a signal to enter a trade, but must exercise caution as false breakouts can lead to losses. If the price breaks through a resistance level, buyers have gained control and an uptrend may occur, while breaking through a support level suggests sellers have gained control and a downtrend may occur.")
 
             st.subheader("Bollinger Bands")
             st.write(
@@ -196,7 +222,8 @@ if authentication_status:
                 st.warning("Please submit the form to see the results")
 
             st.subheader("Keep in mind!")
-            st.markdown("No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: Support/Resistance Breakout: identify key levels and look for breakout above/below Trendline Breakout: look for price patterns, such as triangles or rectangles, to identify the potential direction of the trend Volatility Breakout: identify narrow price ranges and catch the shift when volatility increases ")
+            st.markdown(
+                "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: Support/Resistance Breakout: identify key levels and look for breakout above/below Trendline Breakout: look for price patterns, such as triangles or rectangles, to identify the potential direction of the trend Volatility Breakout: identify narrow price ranges and catch the shift when volatility increases ")
 
 
 
@@ -217,7 +244,8 @@ if authentication_status:
                 st.warning("Please submit the form to see the results")
 
             st.subheader("Keep in mind!")
-            st.markdown("No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The crossover: identify the Stochastic line to be below 20 in combination with the MACD line being above the signal line to indicate oversold conditions The divergence: look for divergencies between the MACD and the prices of asset which indicate the up-/downside and confirm divergences with the Stochastic oscillator values ")
+            st.markdown(
+                "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The crossover: identify the Stochastic line to be below 20 in combination with the MACD line being above the signal line to indicate oversold conditions The divergence: look for divergencies between the MACD and the prices of asset which indicate the up-/downside and confirm divergences with the Stochastic oscillator values ")
 
 
 
@@ -250,7 +278,8 @@ if authentication_status:
                 st.warning("Please submit the form to see the results")
 
             st.subheader("Keep in mind!")
-            st.markdown("No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The Bollinger squeeze: bands squeezing together indicate an imminent price move, choose long/short position accordingly The Bollinger breakout: wait for price breaks outside of the upper/lower bands to determine the potential up-/downtrend The Bollinger reversal: look for divergences between price action and the Bollinger Bands, which indicate potential trend reversals ")
+            st.markdown(
+                "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The Bollinger squeeze: bands squeezing together indicate an imminent price move, choose long/short position accordingly The Bollinger breakout: wait for price breaks outside of the upper/lower bands to determine the potential up-/downtrend The Bollinger reversal: look for divergences between price action and the Bollinger Bands, which indicate potential trend reversals ")
 
 
         elif choose == "Account Details":
@@ -344,6 +373,7 @@ if authentication_status:
                         date = date.removesuffix("Z")
                         date = date.split(".")[0]
                         st.write(date)
+
 
     # ------METHODS--------------------
 
