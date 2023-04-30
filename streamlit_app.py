@@ -60,7 +60,7 @@ if authentication_status:
         authenticator.logout('Logout', 'sidebar')
         # with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\style.css") as f:
         #   st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-        st.title("Welcome to Prodigy Trade!")
+
         # create a session state object to store sample_data
         state = SessionState.get(sample_data=None)
         filter_expander = st.sidebar.expander(label="Click to filter")
@@ -114,15 +114,32 @@ if authentication_status:
 
         # Navigation Bar
         with st.sidebar:
-            choose = option_menu("Trading Strategy",
+            choose = option_menu("Prodigy Menu",
                                  ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger", "Paper Trading",
-                                  "Account Details"])
+                                  "Account Details"],
+                                 icons=["house", "robot", "", "", "", "wallet", "people"])
 
         if choose == "Home":
-            st.header("Hallo")
+            st.title("Welcome to Prodigy Trade!")
+            st.header("Crack the Market with Prodigy Trade")
+            st.write("Prodigy Trade is a cutting-edge web application designed for traders who want to stay ahead of the game. It offers real-time trading data and advanced charting tools to help traders make informed decisions. With Prodigy Trade, users can access a wide range of markets, including stocks, futures, forex, and more. The platform also features customizable watchlists, alerts, and a social trading community where users can share ideas and strategies with other traders. Prodigy Trade is user-friendly and accessible on desktop and mobile devices, making it a convenient and powerful tool for traders of all levels.")
+
+            st.header("Strategies we use in our web-application: ")
+            st.subheader("Breakout out strategy")
+            st.write("Breakouts in trading occur when a stock, commodity, or currency moves beyond a previously established range. This indicates a shift in market sentiment and can lead to sustained trends in the direction of the breakout. Traders can use breakouts as a signal to enter a trade, but must exercise caution as false breakouts can lead to losses. If the price breaks through a resistance level, buyers have gained control and an uptrend may occur, while breaking through a support level suggests sellers have gained control and a downtrend may occur.")
+
+            st.subheader("Bollinger Bands")
+            st.write(
+                "Bollinger Bands use a simple moving average and two standard deviations to identify overbought and oversold assets, and can be adjusted to user preferences. They expand and contract with volatility, indicating relative volatility and potential trend reversals. When the price moves outside the upper or lower band, it signals a potential trend reversal or continuation. If the price moves above the upper band, it's overbought, prompting a short position or sell, while a move below the lower band indicates oversold, prompting a long position or buy.")
+
+            st.subheader("Support and Ressistance")
+            st.write(
+                "The Stochastic oscillator identifies overbought and oversold market conditions to predict price reversals, often used with the MACD to confirm trends. The %K and D% lines make up the Stochastic oscillator, with values above 80 indicating overbought and below 20 indicating oversold conditions. The MACD and signal lines indicate trend direction, with an upward trend suggested by a crossing of the MACD above the signal line and a downward trend suggested by the opposite.")
+
+
 
         elif choose == "Chat Bot":
-            st.header("Chat-Bot")
+            st.title("Chat-Bot")
             with open(".secrets.toml", "r") as f:
                 config = toml.load(f)
             openai.api_key = config["OPENAI_KEY"]
@@ -140,7 +157,8 @@ if authentication_status:
                 return message
 
             # Creating the chatbot interface
-            st.title("chatBot : Streamlit + openAI")
+            st.header("Ask your questions regarding trading")
+            st.markdown("Powered by ChatGPT and Streamlit")
 
             # Storing the chat
             if 'generated' not in st.session_state:
@@ -151,7 +169,7 @@ if authentication_status:
 
             # We will get the user's input by calling the get_text function
             def get_text():
-                input_text = st.text_input("You: ", "Hello, how are you?", key="input")
+                input_text = st.text_input("Your input ", "Hello, how are you?", key="input")
                 return input_text
 
             user_input = get_text()
@@ -170,11 +188,15 @@ if authentication_status:
 
 
         elif choose == "Support and Resistance":
+            st.title("Support and Ressistance")
             try:
 
                 support_and_resistance_algorithm(option, sample_data)
             except:
                 st.warning("Please submit the form to see the results")
+
+            st.subheader("Keep in mind!")
+            st.markdown("No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: Support/Resistance Breakout: identify key levels and look for breakout above/below Trendline Breakout: look for price patterns, such as triangles or rectangles, to identify the potential direction of the trend Volatility Breakout: identify narrow price ranges and catch the shift when volatility increases ")
 
 
 
@@ -194,8 +216,13 @@ if authentication_status:
             except Exception:
                 st.warning("Please submit the form to see the results")
 
+            st.subheader("Keep in mind!")
+            st.markdown("No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The crossover: identify the Stochastic line to be below 20 in combination with the MACD line being above the signal line to indicate oversold conditions The divergence: look for divergencies between the MACD and the prices of asset which indicate the up-/downside and confirm divergences with the Stochastic oscillator values ")
+
+
+
         elif choose == "Paper Trading":
-            st.write('Paper Trading')
+            st.title('Paper Trading')
             st.write("Enter your Alpaca API and secret keys to get started.")
             st.write("After authentication, you can enter your trading information and execute trades.")
 
@@ -203,8 +230,9 @@ if authentication_status:
             trading_platform()
 
         elif choose == "Bollinger":
+            st.title("Bollinger Bands Breakout")
             try:
-                st.title("Bollinger Bands Breakout")
+
                 # sample_data = fetch(session, f"http://127.0.0.1:8084/investment/ETH-USD")
                 df = pd.DataFrame(sample_data)
                 rolling_mean, upper_band, lower_band = calc_bollinger_bands(df)
@@ -220,6 +248,9 @@ if authentication_status:
                 st.plotly_chart(fig)
             except:
                 st.warning("Please submit the form to see the results")
+
+            st.subheader("Keep in mind!")
+            st.markdown("No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The Bollinger squeeze: bands squeezing together indicate an imminent price move, choose long/short position accordingly The Bollinger breakout: wait for price breaks outside of the upper/lower bands to determine the potential up-/downtrend The Bollinger reversal: look for divergences between price action and the Bollinger Bands, which indicate potential trend reversals ")
 
 
         elif choose == "Account Details":
