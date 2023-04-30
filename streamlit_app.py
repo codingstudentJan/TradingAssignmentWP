@@ -1,32 +1,30 @@
 import datetime
-import os
-import toml
-import openai
-from math import floor
-from typing import List
 
 import numpy as np
+import openai
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objs as go
 import requests
 import streamlit as st
+import toml
 import yaml
+from pandas import DataFrame
 from streamlit_authenticator import Authenticate
+from streamlit_chat import message
 from streamlit_option_menu import option_menu
 from yaml.loader import SafeLoader
-from streamlit_chat import message
+import plotly.express as px
 
-from main import get_account_details
+from SessionState import SessionState
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
-from SessionState import SessionState
 
 st.set_page_config(page_title="Prodigy Trade", page_icon="random")
 
 
-def fetch(session, url):
+@st.cache_data
+def fetch(_session, url):
     try:
         result = session.get(url)
         return result.json()
@@ -36,7 +34,7 @@ def fetch(session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(os.getcwd() + "\config.yaml") as file:
+with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml") as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -90,7 +88,6 @@ if authentication_status:
                 with col2:
                     end_time = st.time_input("at which time should the chart end?", datetime.time(15, 00, 00))
 
-        if st.sidebar.button("Submit"):
             temp_start_date_time = datetime.datetime.combine(start_date, start_time)
             start_date_time = str(temp_start_date_time).replace(" ", "T") + "+00:00"
             temp_end_date_time = datetime.datetime.combine(end_date, end_time)
@@ -106,7 +103,8 @@ if authentication_status:
                 state.sample_data = sample_data
                 sample_data = state.sample_data
             except:
-                st.error("Sorry, no data available. We are working on it")
+                # st.error("Sorry, no data available. We are working on it")
+                print('Error')
 
             # update the session state with new sample_data
 
@@ -115,7 +113,8 @@ if authentication_status:
         # Navigation Bar
         with st.sidebar:
             choose = option_menu("Trading Strategy",
-                                 ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger", "Paper Trading",
+                                 ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger",
+                                  "Paper Trading",
                                   "Account Details"])
 
         if choose == "Home":
@@ -123,7 +122,7 @@ if authentication_status:
 
         elif choose == "Chat Bot":
             st.header("Chat-Bot")
-            with open(".secrets.toml", "r") as f:
+            with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\.secrets.toml", "r") as f:
                 config = toml.load(f)
             openai.api_key = config["OPENAI_KEY"]
 
@@ -174,7 +173,7 @@ if authentication_status:
 
                 support_and_resistance_algorithm(option, sample_data)
             except:
-                st.warning("Please submit the form to see the results")
+                st.warning("No data available. We are working on it.")
 
 
 
@@ -192,12 +191,11 @@ if authentication_status:
                 # Add buy and sell signals to chart data
                 chart_data = add_signals_to_chart(chart_data, sample_data)
             except Exception:
-                st.warning("Please submit the form to see the results")
+                st.warning("No data available. We are working on it.")
 
         elif choose == "Paper Trading":
-            st.write('Paper Trading')
-            st.write("Enter your Alpaca API and secret keys to get started.")
-            st.write("After authentication, you can enter your trading information and execute trades.")
+            st.subheader('Paper Trading')
+            st.write('In this section you can buy or sell your equities')
 
             # Create input fields for the user to enter their API and secret keys
             trading_platform()
@@ -219,15 +217,22 @@ if authentication_status:
                 fig.update_layout(title=option, xaxis_title='Timestamp', yaxis_title='Price')
                 st.plotly_chart(fig)
             except:
-                st.warning("Please submit the form to see the results")
+                st.warning("No data available. We are working on it.")
 
 
         elif choose == "Account Details":
+            st.cache_data.clear()
             tab1, tab2, tab3 = st.tabs(["Account Details", "Open Orders", "Closed Orders"])
             with tab1:
                 st.subheader("Account Details")
                 sample: dict = fetch(session,
                                      f"http://127.0.0.1:8084/investment/account")
+                portfolio_history:dict = fetch(session, f"http://127.0.0.1:8084/investment/portfolio_history")
+                print(portfolio_history)
+                history :dict = portfolio_history.get('_raw')
+                chart = px.line()
+                chart.add_scatter(x=history.get('timestamp'), y=history.get('equity'), mode='lines', line_color='green',
+                                  name='Lowest Price')
                 sample = sample.get('_raw')
                 col1, col2 = st.columns(2)
                 with col1:
@@ -257,6 +262,9 @@ if authentication_status:
                 with col2:
                     new_equity: float = float(sample.get('equity')) - float(sample.get('last_equity'))
                     st.write(str(new_equity))
+                with st.container():
+                    st.subheader('Portfolio Development')
+                    st.write(chart)
             with tab2:
                 st.subheader("Open Orders")
                 open_order = "open"
@@ -313,6 +321,7 @@ if authentication_status:
                         date = date.removesuffix("Z")
                         date = date.split(".")[0]
                         st.write(date)
+
 
     # ------METHODS--------------------
 
