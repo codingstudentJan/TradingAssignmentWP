@@ -1,4 +1,4 @@
-# Trading Assgiment
+# Trading Assgiment - ProdigyTrade
 
 - You need to have python version 3.10
 and all this dependencies installed:
@@ -49,3 +49,8 @@ Stay tuned as we launch our next big project...
 This documentation follows the purpose of informing and instructing the user of the main functionalities of our application. The guide will include instructions on the following use cases: 
 
 - Registration
+- Login
+- Search for Stocks & Crypto
+- Buy/Sell Stocks & Crypto
+- Look up Performance of Stocks & Crypto
+- ...
