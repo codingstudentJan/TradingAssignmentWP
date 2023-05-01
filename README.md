@@ -53,4 +53,8 @@ This documentation follows the purpose of informing and instructing the user of 
 - Search for Stocks & Crypto
 - Buy/Sell Stocks & Crypto
 - Look up Performance of Stocks & Crypto
+- Get Trading Alerts
 - ...
+
+
+## 1. Registration
