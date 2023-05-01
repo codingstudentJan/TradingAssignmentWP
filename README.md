@@ -63,7 +63,7 @@ This documentation follows the purpose of informing and instructing the user of 
 
 ### 3. Search for Stocks & Crypto
 
-### 4. Buy7Sell Stocks & Crypto
+### 4. Buy/Sell Stocks & Crypto
 
 ### 5. Look up Performance of Stocks & Crypto
 
@@ -74,3 +74,5 @@ This documentation follows the purpose of informing and instructing the user of 
 ### 8.
 
 ### 9.
+
+### 10.
