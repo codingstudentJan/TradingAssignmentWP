@@ -39,3 +39,9 @@ oder smtp.gmail.com
     streamlit run streamlit_app.py      
 ```
 
+# Enduser Documentation
+Hello together,
+we are "ProdigyTrading", the newcomer for web application services in the money and stock trading sector.
+As newcomers to this space, we are dedicated to bringing unique and user-friendly solutions to help businesses thrive in the digital age. Our team is passionate about trading and crypto, and we believe that our combined expertise will revolutionize the way businesses in this industry operate. We're thrilled to share our vision with you and showcase how our services can help take your business to the next level.
+Exited for what is to come?
+Stay tuned as we launch our next big project...
