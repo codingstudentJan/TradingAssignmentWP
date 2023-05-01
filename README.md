@@ -45,3 +45,7 @@ we are "ProdigyTrading", the newcomer for web application services in the money 
 As newcomers to this space, we are dedicated to bringing unique and user-friendly solutions to help businesses thrive in the digital age. Our team is passionate about trading and crypto, and we believe that our combined expertise will revolutionize the way businesses in this industry operate. We're thrilled to share our vision with you and showcase how our services can help take your business to the next level.
 Exited for what is to come?
 Stay tuned as we launch our next big project...
+
+This documentation follows the purpose of informing and instructing the user of the main functionalities of our application. The guide will include instructions on the following use cases: 
+
+- Registration
