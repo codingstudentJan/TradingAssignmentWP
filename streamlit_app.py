@@ -18,6 +18,8 @@ from streamlit_chat import message
 from streamlit_option_menu import option_menu
 from yaml.loader import SafeLoader
 import plotly.express as px
+import hydralit_components as hc
+import hydralit as hy
 
 from SessionState import SessionState
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
@@ -25,7 +27,7 @@ from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
 from bollinger_band import draw_lines, draw_bollinger_bands, draw_signals, calc_bollinger_bands, bollinger_marker_return, bollinger_strategy_signals
 
-st.set_page_config(page_title="Prodigy Trade", page_icon="random")
+st.set_page_config(page_title="Prodigy Trade", page_icon="random", layout='wide',initial_sidebar_state='collapsed')
 
 random_stock_pick_array = []
 
@@ -60,6 +62,24 @@ stocks_list = fetch(session, f"http://127.0.0.1:8084/investment/assets")
 
 # dictionary for the categories
 stocks_category = stocks_list
+
+
+# Define the menu items and their labels
+menu_items = [
+    {"id": "home", "label": "Home"},
+    {"id": "chatbot", "label": "Chat Bot"},
+    {"id": "support", "label": "Support and Resistance"},
+    {"id": "momentum", "label": "Momentum"},
+    {"id": "bolinger", "label": "Bolinger"},
+    {"id": "papertrading", "label": "Paper Trading"},
+    {"id": "accountdetails", "label": "Account Details"},
+]
+
+# Define the override theme to set the background color of the navigation bar
+over_theme = {"txc_navbar": "#808080", "txc_navbar_st": "#808080"}
+
+
+
 if authentication_status:
     def main():
         authenticator.logout('Logout', 'sidebar')
@@ -111,19 +131,24 @@ if authentication_status:
                 # st.error("Sorry, no data available. We are working on it")
                 print('Error')
 
-            # update the session state with new sample_data
+        # Create the navigation bar using the `hc.nav_bar` function
+        menu_id = hc.nav_bar(
+            menu_definition=menu_items,
+            override_theme=over_theme,
+            hide_streamlit_markers=False, #will show the st hamburger as well as the navbar now!
+            sticky_nav=True, #at the top or not
+            sticky_mode='pinned', #jumpy or not-jumpy, but sticky or pinned
+        )
 
-        # use the session state to access sample_data
+        # Set the session state variable `nav` whenever a menu item is clicked
+        if menu_id != "home":
+            st.session_state.nav = menu_id
+        else:
+            st.session_state.nav = "home"
 
-        # Navigation Bar
-        with st.sidebar:
-            choose = option_menu("Prodigy Menu",
-                                 ["Home", "Chat Bot", "Support and Resistance", "Momentum", "Bollinger",
-                                  "Paper Trading",
-                                  "Account Details"],
-                                 icons=["house", "robot", "", "", "", "wallet", "people"])
+        # Render content based on selected navigation link
+        if st.session_state.nav == "home":
 
-        if choose == "Home":
             st.title("Welcome to Prodigy Trade!")
             st.header("Crack the Market with Prodigy Trade")
             st.write(
@@ -135,7 +160,7 @@ if authentication_status:
             end_date_time_rdm = str(end_dt_rdm).replace(" ", "T") + "+00:00"
             st.write(end_date_time_rdm)
 
-            start_dt_rdm = end_dt_rdm - datetime.timedelta(hours=50)
+            start_dt_rdm = end_dt_rdm - datetime.timedelta(hours=80)
             start_date_time_rdm = str(start_dt_rdm).replace(" ", "T") + "+00:00"
             st.write(start_date_time_rdm)
 
@@ -164,10 +189,9 @@ if authentication_status:
             st.subheader("Momentum (Stochastic and MACD)")
             st.write(
                 "The Stochastic oscillator identifies overbought and oversold market conditions to predict price reversals, often used with the MACD to confirm trends. The %K and D% lines make up the Stochastic oscillator, with values above 80 indicating overbought and below 20 indicating oversold conditions. The MACD and signal lines indicate trend direction, with an upward trend suggested by a crossing of the MACD above the signal line and a downward trend suggested by the opposite.")
+            
+        elif st.session_state.nav == "chatbot":
 
-
-
-        elif choose == "Chat Bot":
             st.title("Chat-Bot")
             with open(r"D:\New folder\TraderJoe\.secrets.toml", "r") as f:
                 config = toml.load(f)
@@ -215,8 +239,8 @@ if authentication_status:
                     message(st.session_state["generated"][i], key=str(i))
                     message(st.session_state['past'][i], is_user=True, key=str(i) + '_user')
 
+        elif st.session_state.nav == "support":
 
-        elif choose == "Support and Resistance":
             st.title("Support and Ressistance")
             try:
 
@@ -227,10 +251,9 @@ if authentication_status:
             st.subheader("Keep in mind!")
             st.markdown(
                 "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: Support/Resistance Breakout: identify key levels and look for breakout above/below Trendline Breakout: look for price patterns, such as triangles or rectangles, to identify the potential direction of the trend Volatility Breakout: identify narrow price ranges and catch the shift when volatility increases ")
+            
+        elif st.session_state.nav == "momentum":
 
-
-
-        elif choose == "Momentum":
             st.title('Momentum')
             try:
                 # Calling the momentum method
@@ -250,15 +273,8 @@ if authentication_status:
             st.markdown(
                 "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The crossover: identify the Stochastic line to be below 20 in combination with the MACD line being above the signal line to indicate oversold conditions The divergence: look for divergencies between the MACD and the prices of asset which indicate the up-/downside and confirm divergences with the Stochastic oscillator values ")
 
+        elif st.session_state.nav == "bolinger":
 
-
-        elif choose == "Paper Trading":
-            st.title('Paper Trading')
-            st.write('In this section you can buy or sell your equities')
-
-            trading_platform()
-
-        elif choose == "Bollinger":
             st.title("Bollinger Bands Breakout")
             try:
                 df = pd.DataFrame(sample_data)
@@ -281,7 +297,17 @@ if authentication_status:
                 "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: The Bollinger squeeze: bands squeezing together indicate an imminent price move, choose long/short position accordingly The Bollinger breakout: wait for price breaks outside of the upper/lower bands to determine the potential up-/downtrend The Bollinger reversal: look for divergences between price action and the Bollinger Bands, which indicate potential trend reversals ")
 
 
-        elif choose == "Account Details":
+        elif st.session_state.nav == "papertrading":
+            st.write("Welcome to the Paper Trading page!")
+
+            st.title('Paper Trading')
+            st.write('In this section you can buy or sell your equities')
+
+            trading_platform()
+
+        elif st.session_state.nav == "accountdetails":
+            st.write("Welcome to the Account Details page!")
+
             st.cache_data.clear()
             tab1, tab2, tab3 = st.tabs(["Account Details", "Open Orders", "Closed Orders"])
             with tab1:
@@ -382,6 +408,8 @@ if authentication_status:
                         date = date.removesuffix("Z")
                         date = date.split(".")[0]
                         st.write(date)
+        else:
+            st.write("Please select a page from the navigation menu.")
 
     if __name__ == '__main__':
         main()
