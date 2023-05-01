@@ -39,7 +39,7 @@ oder smtp.gmail.com
     streamlit run streamlit_app.py      
 ```
 
-# Enduser Documentation
+## Enduser Documentation
 Hello together,
 we are "ProdigyTrading", the newcomer for web application services in the money and stock trading sector.
 As newcomers to this space, we are dedicated to bringing unique and user-friendly solutions to help businesses thrive in the digital age. Our team is passionate about trading and crypto, and we believe that our combined expertise will revolutionize the way businesses in this industry operate. We're thrilled to share our vision with you and showcase how our services can help take your business to the next level.
@@ -57,4 +57,20 @@ This documentation follows the purpose of informing and instructing the user of 
 - ...
 
 
-## 1. Registration
+### 1. Registration
+
+### 2. Login
+
+### 3. Search for Stocks & Crypto
+
+### 4. Buy7Sell Stocks & Crypto
+
+### 5. Look up Performance of Stocks & Crypto
+
+### 6. Get Trading Alerts
+
+### 7.
+
+### 8.
+
+### 9.
