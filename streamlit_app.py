@@ -19,6 +19,7 @@ from bollinger_band import draw_lines, draw_bollinger_bands, draw_signals, calc_
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
+from PIL import Image
 
 st.set_page_config(page_title="Prodigy Trade", page_icon="random", layout='wide', initial_sidebar_state='collapsed')
 
@@ -36,7 +37,7 @@ def fetch(_session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml") as file:
+with open(r"D:\New folder\TraderJoe\config.yaml") as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -70,11 +71,17 @@ menu_items = [
 # Define the override theme to set the background color of the navigation bar
 over_theme = {"txc_navbar": "#808080", "txc_navbar_st": "#808080"}
 
+
+# Load the image file
+image = Image.open(r'D:\New folder\TraderJoe\logo.png')
+
 if authentication_status:
     def main():
         authenticator.logout('Logout', 'sidebar')
 
-        # create a session state object to store sample_data
+        # Display the image in the sidebar
+        st.sidebar.image(image, use_column_width=True)
+
         state = SessionState.get(sample_data=None)
         filter_expander = st.sidebar.expander(label="Click to filter")
         with filter_expander:
@@ -86,6 +93,13 @@ if authentication_status:
             with st.container():
                 trading_options = ["Minute Trading", "Hour Trading", "Day Trading"]
                 trading_option = st.selectbox(label="Select Trading Type", options=trading_options)
+                st.markdown("<span style='font-size:10pt; font-style:italic;'>"
+                            "<strong>Note:</strong></span>", unsafe_allow_html=True)
+                st.markdown("<span style='font-size:10pt; font-style:italic;'>"
+                            "- Minute Trading, please ensure you choose at least 5 hours timespan.<br>"
+                            "- Hour Trading, please ensure you choose at least 8 days timespan.<br>"
+                            "- Day Trading, please ensure you choose at least 5 months timespan.</span>", 
+            unsafe_allow_html=True)
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
@@ -120,6 +134,9 @@ if authentication_status:
             except:
                 # st.error("Sorry, no data available. We are working on it")
                 print('Error')
+
+        # Display the image in the sidebar
+        st.sidebar.image(image, use_column_width=True)
 
         # Create the navigation bar using the `hc.nav_bar` function
         menu_id = hc.nav_bar(
@@ -183,7 +200,7 @@ if authentication_status:
         elif st.session_state.nav == "chatbot":
 
             st.title("Chat-Bot")
-            with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\.secrets.toml", "r") as f:
+            with open(r"D:\New folder\TraderJoe\.secrets.toml", "r") as f:
                 config = toml.load(f)
             openai.api_key = config["OPENAI_KEY"]
 
@@ -248,7 +265,6 @@ if authentication_status:
             try:
                 # Calling the momentum method
                 sample_data = apply_momentum_strategy(sample_data)
-                st.write(sample_data)
 
                 # Create chart data from sample data
 
