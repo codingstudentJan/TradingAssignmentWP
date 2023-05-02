@@ -1,5 +1,7 @@
 import smtplib
 from email.mime.text import MIMEText
+from email.message import EmailMessage
+import ssl
 
 import alpaca_trade_api as tradeapi
 import streamlit as st
@@ -39,23 +41,27 @@ def trading_platform():
                                          time_in_force='day', order_class='simple')
 
             # Show the order details and current unrealized profit or loss
-            text = f"Your order of{symbol} was a success\n" \
+            text = f"Your order of {symbol} was a success. \n" \
                    f"Order ID: {order.id} \n" \
                    f"Symbol: {order.symbol}\n" \
                    f"Quantity: {order.qty}\n" \
                    f"Status: {order.status}\n" \
                    f"Thank you for choosing ProdigyTrade!"
-            mail = MIMEText(text)
-            mail['Subject'] = f"Your order {selected_symbol} "
-            mail['From'] = 'jan@juergenberger.de'
-            mail['To'] = 'jan@juergenberger.de'
-            sender = smtplib.SMTP("smtp.ionos.de", 587)
-            sender.ehlo()
-            sender.starttls()
-            sender.ehlo()
-            sender.login('jan@juergenberger.de', ',I5mk,GHW|,|mRzx!6?i')
-            sender.send_message(mail)
-            sender.close()
+            mailsender = 'ProdigyTradeDHBW@gmail.com'
+            password = 'zhkmuvnaykjhrhqd'
+            mail_receiver = 'jan@juergenberger.de'
+
+            em = EmailMessage()
+            em['From'] = mailsender
+            em['To'] = mail_receiver
+            em['Subject'] = f"Your order of {selected_symbol}"
+            context = em.set_content(text)
+
+            ssl.create_default_context()
+            with smtplib.SMTP_SSL('smtp.gmail.com',465,context= context) as smtp:
+                smtp.login(mailsender,password)
+                smtp.sendmail(mailsender,mail_receiver,em.as_string())
+
             st.success(f"Your order of{selected_symbol} was a success")
             st.write("Order ID:", order.id)
             st.write("Symbol:", order.symbol)
