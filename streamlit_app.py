@@ -1,33 +1,26 @@
 import datetime
-import os
-import toml
-import openai
-from math import floor
-from typing import List
 
-import numpy as np
+import hydralit_components as hc
+import openai
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objs as go
 import requests
 import streamlit as st
 import toml
 import yaml
-from pandas import DataFrame
 from streamlit_authenticator import Authenticate
 from streamlit_chat import message
-from streamlit_option_menu import option_menu
 from yaml.loader import SafeLoader
-import plotly.express as px
-import hydralit_components as hc
-import hydralit as hy
 
 from SessionState import SessionState
+from bollinger_band import draw_lines, draw_bollinger_bands, draw_signals, calc_bollinger_bands, \
+    bollinger_marker_return, bollinger_strategy_signals
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
-from bollinger_band import draw_lines, draw_bollinger_bands, draw_signals, calc_bollinger_bands, bollinger_marker_return, bollinger_strategy_signals
 
-st.set_page_config(page_title="Prodigy Trade", page_icon="random", layout='wide',initial_sidebar_state='collapsed')
+st.set_page_config(page_title="Prodigy Trade", page_icon="random", layout='wide', initial_sidebar_state='collapsed')
 
 random_stock_pick_array = []
 
@@ -43,7 +36,7 @@ def fetch(_session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r"D:\New folder\TraderJoe\config.yaml") as file:
+with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml") as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -63,7 +56,6 @@ stocks_list = fetch(session, f"http://127.0.0.1:8084/investment/assets")
 # dictionary for the categories
 stocks_category = stocks_list
 
-
 # Define the menu items and their labels
 menu_items = [
     {"id": "home", "label": "Home"},
@@ -77,8 +69,6 @@ menu_items = [
 
 # Define the override theme to set the background color of the navigation bar
 over_theme = {"txc_navbar": "#808080", "txc_navbar_st": "#808080"}
-
-
 
 if authentication_status:
     def main():
@@ -135,9 +125,9 @@ if authentication_status:
         menu_id = hc.nav_bar(
             menu_definition=menu_items,
             override_theme=over_theme,
-            hide_streamlit_markers=False, #will show the st hamburger as well as the navbar now!
-            sticky_nav=True, #at the top or not
-            sticky_mode='pinned', #jumpy or not-jumpy, but sticky or pinned
+            hide_streamlit_markers=False,  # will show the st hamburger as well as the navbar now!
+            sticky_nav=True,  # at the top or not
+            sticky_mode='pinned',  # jumpy or not-jumpy, but sticky or pinned
         )
 
         # Set the session state variable `nav` whenever a menu item is clicked
@@ -189,11 +179,11 @@ if authentication_status:
             st.subheader("Momentum (Stochastic and MACD)")
             st.write(
                 "The Stochastic oscillator identifies overbought and oversold market conditions to predict price reversals, often used with the MACD to confirm trends. The %K and D% lines make up the Stochastic oscillator, with values above 80 indicating overbought and below 20 indicating oversold conditions. The MACD and signal lines indicate trend direction, with an upward trend suggested by a crossing of the MACD above the signal line and a downward trend suggested by the opposite.")
-            
+
         elif st.session_state.nav == "chatbot":
 
             st.title("Chat-Bot")
-            with open(r"D:\New folder\TraderJoe\.secrets.toml", "r") as f:
+            with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\.secrets.toml", "r") as f:
                 config = toml.load(f)
             openai.api_key = config["OPENAI_KEY"]
 
@@ -251,7 +241,7 @@ if authentication_status:
             st.subheader("Keep in mind!")
             st.markdown(
                 "No breakout strategy is fool-proof and requires risk management techniques and discipline. It's essential to adapt your strategy to changing market conditions, to always do your own research before entering any trade and use a combination of tools & techniques to make informed trading decisions. Possible strategies include: Support/Resistance Breakout: identify key levels and look for breakout above/below Trendline Breakout: look for price patterns, such as triangles or rectangles, to identify the potential direction of the trend Volatility Breakout: identify narrow price ranges and catch the shift when volatility increases ")
-            
+
         elif st.session_state.nav == "momentum":
 
             st.title('Momentum')
@@ -314,9 +304,9 @@ if authentication_status:
                 st.subheader("Account Details")
                 sample: dict = fetch(session,
                                      f"http://127.0.0.1:8084/investment/account")
-                portfolio_history:dict = fetch(session, f"http://127.0.0.1:8084/investment/portfolio_history")
+                portfolio_history: dict = fetch(session, f"http://127.0.0.1:8084/investment/portfolio_history")
                 print(portfolio_history)
-                history :dict = portfolio_history.get('_raw')
+                history: dict = portfolio_history.get('_raw')
                 chart = px.line()
                 chart.add_scatter(x=history.get('timestamp'), y=history.get('equity'), mode='lines', line_color='green',
                                   name='Lowest Price')
@@ -410,6 +400,7 @@ if authentication_status:
                         st.write(date)
         else:
             st.write("Please select a page from the navigation menu.")
+
 
     if __name__ == '__main__':
         main()

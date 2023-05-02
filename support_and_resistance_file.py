@@ -1,10 +1,11 @@
-import numpy as np
+import pandas as pd
+from typing import List
+
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objs as go
-import requests
 import streamlit as st
-from typing import List
+
+
 def support_and_resistance_algorithm(option, sample_data):
     def filling_support_levels(new_df, support_levels, bottom_factor, up_factor, safe_extrema_number):
         support_copy: List = []
@@ -23,7 +24,7 @@ def support_and_resistance_algorithm(option, sample_data):
                     support_levels[i][2] = support_levels[i][2] + 1
                     support_levels[j] = [0, 0, 0]
 
-        #print("Support Levels davor", support_levels)
+        # print("Support Levels davor", support_levels)
         for i in range(0, len(support_levels)):
             if support_levels[i] != [0, 0, 0]:
                 support_copy.append(support_levels[i])
@@ -57,7 +58,7 @@ def support_and_resistance_algorithm(option, sample_data):
         for i in range(0, len(resistance_copy)):
             if resistance_copy[i][2] >= safe_extrema_number:
                 resistance_levels.append(resistance_copy[i])
-        #print("Resistance Levels danach", resistance_levels)
+        # print("Resistance Levels danach", resistance_levels)
         return resistance_levels
 
     def is_support(new_df, i: int):

@@ -1,8 +1,9 @@
-import streamlit as st
-import alpaca_trade_api as tradeapi
 import smtplib
 from email.mime.text import MIMEText
-import time
+
+import alpaca_trade_api as tradeapi
+import streamlit as st
+
 
 def trading_platform():
     # Set the API endpoint to the Alpaca paper trading endpoint
@@ -31,26 +32,28 @@ def trading_platform():
         # Execute the trade when the "Execute Trade" button is clicked
         if st.button("Execute Trade"):
             if side == "Buy":
-                order = api.submit_order(symbol=selected_symbol, qty=qty, side='buy', type='market', time_in_force='day', order_class='simple')
+                order = api.submit_order(symbol=selected_symbol, qty=qty, side='buy', type='market',
+                                         time_in_force='day', order_class='simple')
             else:
-                order = api.submit_order(symbol=selected_symbol, qty=qty, side='sell', type='market', time_in_force='day', order_class='simple')
+                order = api.submit_order(symbol=selected_symbol, qty=qty, side='sell', type='market',
+                                         time_in_force='day', order_class='simple')
 
             # Show the order details and current unrealized profit or loss
-            text = f"Your order of{symbol} was a success\n"\
-                              f"Order ID: {order.id} \n" \
-                              f"Symbol: {order.symbol}\n" \
-                              f"Quantity: {order.qty}\n" \
-                              f"Status: {order.status}\n" \
-                              f"Thank you for choosing ProdigyTrade!"
+            text = f"Your order of{symbol} was a success\n" \
+                   f"Order ID: {order.id} \n" \
+                   f"Symbol: {order.symbol}\n" \
+                   f"Quantity: {order.qty}\n" \
+                   f"Status: {order.status}\n" \
+                   f"Thank you for choosing ProdigyTrade!"
             mail = MIMEText(text)
             mail['Subject'] = f"Your order {selected_symbol} "
             mail['From'] = 'jan@juergenberger.de'
             mail['To'] = 'jan@juergenberger.de'
-            sender = smtplib.SMTP("smtp.ionos.de",587)
+            sender = smtplib.SMTP("smtp.ionos.de", 587)
             sender.ehlo()
             sender.starttls()
             sender.ehlo()
-            sender.login('jan@juergenberger.de',',I5mk,GHW|,|mRzx!6?i')
+            sender.login('jan@juergenberger.de', ',I5mk,GHW|,|mRzx!6?i')
             sender.send_message(mail)
             sender.close()
             st.success(f"Your order of{selected_symbol} was a success")
