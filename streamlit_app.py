@@ -37,7 +37,7 @@ def fetch(_session, url):
 
 # hashed_passwords = stauth.Hasher(['abc123','def']).generate()
 
-with open(r"D:\New folder\TraderJoe\config.yaml") as file:
+with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\config.yaml") as file:
     config = yaml.load(file, Loader=SafeLoader)
 
     authenticator = Authenticate(
@@ -135,17 +135,15 @@ if authentication_status:
                 # st.error("Sorry, no data available. We are working on it")
                 print('Error')
 
-        # Display the image in the sidebar
-        st.sidebar.image(image, use_column_width=True)
-
         # Create the navigation bar using the `hc.nav_bar` function
-        menu_id = hc.nav_bar(
-            menu_definition=menu_items,
-            override_theme=over_theme,
-            hide_streamlit_markers=False,  # will show the st hamburger as well as the navbar now!
-            sticky_nav=True,  # at the top or not
-            sticky_mode='pinned',  # jumpy or not-jumpy, but sticky or pinned
-        )
+        with st.container():
+            menu_id = hc.nav_bar(
+                menu_definition=menu_items,
+                override_theme=over_theme,
+                hide_streamlit_markers=False,  # will show the st hamburger as well as the navbar now!
+                sticky_nav=True,  # at the top or not
+                sticky_mode='pinned',  # jumpy or not-jumpy, but sticky or pinned
+            )
 
         # Set the session state variable `nav` whenever a menu item is clicked
         if menu_id != "home":
@@ -200,7 +198,7 @@ if authentication_status:
         elif st.session_state.nav == "chatbot":
 
             st.title("Chat-Bot")
-            with open(r"D:\New folder\TraderJoe\.secrets.toml", "r") as f:
+            with open(r"C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\.secrets.toml", "r") as f:
                 config = toml.load(f)
             openai.api_key = config["OPENAI_KEY"]
 
