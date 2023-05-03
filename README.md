@@ -1,5 +1,5 @@
 # Trading Assgiment - ProdigyTrade
-
+## Prerequisites
 - You need to have python version 3.10
 and all this dependencies installed:
 ```bash 
@@ -17,20 +17,37 @@ and all this dependencies installed:
     Pip install ta
     pip install openai
     pip install streamlit-chat
+    pip install hydralit
 ```
 
-Config file aktualisieren in Streamlit_app file
+## Streamlit Theme and paths
 
-Login Data: cPerrot, abc123
+Please create in your user directory a .streamlit directory and then add a config.toml file.
+In this config.toml add the follwoing code:
+```bash
+[theme]
+primaryColor="#a2a2a2"
+backgroundColor="#111f4d"
+secondaryBackgroundColor="#020205"
+textColor="#f3e99f"
+```
+Furthermore, you have to make sure that in line 40,75 and 200 of streamlit_app.py there are the right paths specified
+
+
+## Login and Email-Account used for the app 
+#### Login for the app: 
+username: cPerrot, password: abc123
+
+#### Email
 
 Prodigy Trade Email Account
 - ProdigyTradeDHBW@gmail.com
 - abc123!*
 - 01.01.2000
 
-Sollte bei gmail dieser sein: smtp-relay.gmail.com
-oder smtp.gmail.com
+SMTP-Server: smtp.gmail.com
 
+## Running the application
 - To run the application, input following commands in separate terminals (both must be active):
 ```bash
     python main.py  
