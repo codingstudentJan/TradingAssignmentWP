@@ -1,4 +1,12 @@
 # Trading Assgiment - ProdigyTrade
+Group 1 matriculation number:
+Jan: 5155774
+Laura: 7355671
+Dennis: 7606443
+Lyle: 2170275
+Feni: 2222199
+
+
 ## Prerequisites
 - You need to have python version 3.10
 and all this dependencies installed:
