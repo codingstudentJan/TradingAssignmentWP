@@ -93,6 +93,11 @@ Our innovative ChatBot enables our users to access information and support 24/7.
 1. select “ChatBot” at the top of the navigation bar 
 2. To enter a question or statement, please do so by putting your input in the input field 
 
+To implement the functionality of the trading bot, you need to follow several steps first:
+1. Generate an API Key in your OpenAI Account. Follow this instruction for this:https://www.howtogeek.com/885918/how-to-get-an-openai-api-key/
+2. Place your API Key into the .secrets.toml file after the equal-sign
+3. Enjoy!
+
 ### 3. Choosing a Strategy
 ProdigyTrade offers various strategy options with different plot visualizations and information.  
 1. To select one, click the desired one in the navigation bar at the top. The possibilities are “Support and Resistance”, “Momentum”, “Bollinger” and “Paper  Trading”. In this example “Support and Resistance” will be showed. The procedure for the other options is the same.  
