@@ -51,9 +51,7 @@ This documentation follows the purpose of informing and instructing the user of 
 - Login
 - ChatBot
 - Choosing a Strategy
-- Look up Performance of Stocks & Crypto
-- Get Trading Alerts
-- ...
+- Buy & Sell Stocks
 
 
 ### 1. Login
@@ -71,17 +69,10 @@ Our innovative ChatBot enables our users to access information and support 24/7.
 ### 3. Choosing a Strategy
 ProdigyTrade offers various strategy options with different plot visualizations and information.  
 1. To select one, click the desired one in the navigation bar at the top. The possibilities are “Support and Resistance”, “Momentum”, “Bollinger” and “Paper  Trading”. In this example “Support and Resistance” will be showed. The procedure for the other options is the same.  
+2. It is possible to enter a safe support/resistance number as well as various filter options on the left menu side. The filter options include the stock and trading type as well as the date and time of the visualized chart/plot. 
+3. Upon scrolling down, you may find a wrap up and some basic tips when trading 
 
-### 4. Buy/Sell Stocks & Crypto
-
-### 5. Look up Performance of Stocks & Crypto
-
-### 6. Get Trading Alerts
-
-### 7.
-
-### 8.
-
-### 9.
-
-### 10.
+### 4. Buy/Sell Stocks
+Our website offers the option to sell or buy your equities. To do so, follow these steps: 
+1. Select “Paper Trading” in the navigation bar above 
+2. Upon selecting different trading criteria such as symbol to trade or quantity, make sure to click “execute trade” to submit 
