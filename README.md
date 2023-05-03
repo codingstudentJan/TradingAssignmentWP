@@ -52,7 +52,9 @@ This documentation follows the purpose of informing and instructing the user of 
 - ChatBot
 - Choosing a Strategy
 - Buy & Sell Stocks
+- Account & Order Information 
 
+As any unanswered questions/queries arise, make sure to contact lauramakare00@gmail.com for further support.  
 
 ### 1. Login
 A login option exists that enables the user to access “Prodigy Trade” and ist functionalities regarding stock trading. Upon login, users have the option to get information on different strategies, select various trading assets and look up performance of stocks.  
@@ -76,3 +78,11 @@ ProdigyTrade offers various strategy options with different plot visualizations 
 Our website offers the option to sell or buy your equities. To do so, follow these steps: 
 1. Select “Paper Trading” in the navigation bar above 
 2. Upon selecting different trading criteria such as symbol to trade or quantity, make sure to click “execute trade” to submit 
+
+### 5. Account & Order Information
+To see the overview of your closed or open orders, as well as other account details, please complete the following steps:  
+1. Select “Account Details” from the navigation bar 
+2. An overview of your account details will be displayed as below 
+3. An overview display of your open orders is also possible, by clicking the according navigation register “Open Orders” 
+4. An overview display of your closed orders is also possible, by clicking the according navigation register “Closed Orders” 
+5. You may also see the positions, what the average starting price was and what the current price is. An overview is display upon clicking the register “Positions” 
