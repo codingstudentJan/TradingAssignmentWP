@@ -9,6 +9,7 @@ import requests
 import streamlit as st
 import toml
 import yaml
+from PIL import Image
 from streamlit_authenticator import Authenticate
 from streamlit_chat import message
 from yaml.loader import SafeLoader
@@ -19,7 +20,6 @@ from bollinger_band import draw_lines, draw_bollinger_bands, draw_signals, calc_
 from momentum_strategy import apply_momentum_strategy, add_signals_to_chart
 from support_and_resistance_file import support_and_resistance_algorithm
 from trading_platform_component import trading_platform
-from PIL import Image
 
 st.set_page_config(page_title="Prodigy Trade", page_icon="random", layout='wide', initial_sidebar_state='collapsed')
 
@@ -71,9 +71,8 @@ menu_items = [
 # Define the override theme to set the background color of the navigation bar
 over_theme = {"txc_navbar": "#808080", "txc_navbar_st": "#808080"}
 
-
 # Load the image file
-image = Image.open(r'D:\New folder\TraderJoe\logo.png')
+image = Image.open(r'C:\Users\User\Desktop\4.Semester\Web_Programming\TraderJoe\logo.png')
 
 if authentication_status:
     def main():
@@ -98,8 +97,8 @@ if authentication_status:
                 st.markdown("<span style='font-size:10pt; font-style:italic;'>"
                             "- Minute Trading, please ensure you choose at least 5 hours timespan.<br>"
                             "- Hour Trading, please ensure you choose at least 8 days timespan.<br>"
-                            "- Day Trading, please ensure you choose at least 5 months timespan.</span>", 
-            unsafe_allow_html=True)
+                            "- Day Trading, please ensure you choose at least 5 months timespan.</span>",
+                            unsafe_allow_html=True)
             with st.container():
                 col1, col2 = st.columns(2)
                 with col1:
@@ -313,7 +312,7 @@ if authentication_status:
             st.write("Welcome to the Account Details page!")
 
             st.cache_data.clear()
-            tab1, tab2, tab3 = st.tabs(["Account Details", "Open Orders", "Closed Orders"])
+            tab1, tab2, tab3, tab4 = st.tabs(["Account Details", "Open Orders", "Closed Orders", "Positions"])
             with tab1:
                 st.subheader("Account Details")
                 sample: dict = fetch(session,
@@ -391,29 +390,71 @@ if authentication_status:
                 closed = 'closed'
                 sample: dict = fetch(session,
                                      f"http://127.0.0.1:8084/investment/orders/{closed}")
+                print("All Closed orders", sample)
 
-                col1, col2 = st.columns(2)
+                col1, col2, col3 = st.columns(3)
                 with col1:
                     st.write("Symbol")
                 with col2:
                     st.write("Executed at (UTC Time)")
+                with col3:
+                    st.write('Buy/Sell')
                 if sample == []:
                     st.warning("No closed orders")
                 else:
+
+                    col1, col2, col3 = st.columns(3)
+                    for row in sample:
+                        open_order: dict = row.get('_raw')
+                        with col1:
+                            st.write(open_order.get("symbol"))
+                        with col2:
+                            date: str = open_order.get('submitted_at')
+                            date = date.replace("T", " ")
+                            date = date.removesuffix("Z")
+                            date = date.split(".")[0]
+                            st.write(date)
+                        with col3:
+                            st.write(open_order.get("side"))
+            with tab4:
+                sample: dict = fetch(session,
+                                     f"http://127.0.0.1:8084/investment/positions")
+                col1, col2, col3, col4, col5 = st.columns(5)
+                with col1:
+                    st.write('Symbol')
+                with col2:
+                    st.write('Quantity')
+                with col3:
+                    st.write('Average entry price:')
+                with col4:
+                    st.write('Current Price:')
+                with col5:
+                    st.write('Long/Short')
+                if sample == []:
+                    st.warning('Currently you do not have positions')
+
+                else:
+                    col1, col2, col3, col4, col5 = st.columns(5)
                     for row in sample:
                         open_order: dict = row.get('_raw')
 
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.write(open_order.get('symbol'))
-                    with col2:
-                        date: str = open_order.get('submitted_at')
-                        date = date.replace("T", " ")
-                        date = date.removesuffix("Z")
-                        date = date.split(".")[0]
-                        st.write(date)
+                        with col1:
+                            st.write(open_order.get('symbol'))
+
+                        with col2:
+                            st.write(open_order.get('qty'))
+
+                        with col3:
+                            st.write(open_order.get('avg_entry_price'))
+
+                        with col4:
+                            st.write(open_order.get('current_price'))
+
+                        with col5:
+                            st.write(open_order.get('side'))
+                print(sample)
         else:
-            st.write("Please select a page from the navigation menu.")
+            st.warning("Please select a page from the navigation menu.")
 
 
     if __name__ == '__main__':

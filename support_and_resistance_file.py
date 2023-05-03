@@ -196,7 +196,7 @@ def support_and_resistance_algorithm(option, sample_data):
                           ))
     if buy_signal_resistances.shape[0] > 0:
         chart.add_scatter(x=buy_signal_resistances['datetime'], y=buy_signal_resistances['high'],
-                          mode='markers', name='Buy Signals',
+                          mode='markers', name=' Resistance Buy Signals',
                           marker=dict(
                               symbol='triangle-up',
                               size=8,
@@ -204,7 +204,7 @@ def support_and_resistance_algorithm(option, sample_data):
                           ))
     if sell_signal_resistances.shape[0] > 0:
         chart.add_scatter(x=sell_signal_resistances['datetime'], y=sell_signal_resistances['high'],
-                          mode='markers', name='Sell Signals',
+                          mode='markers', name='Resistance Sell Signals',
                           marker=dict(
                               symbol='triangle-down',
                               size=8,
