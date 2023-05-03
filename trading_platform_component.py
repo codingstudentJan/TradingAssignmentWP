@@ -49,7 +49,7 @@ def trading_platform():
                    f"Thank you for choosing ProdigyTrade!"
             mailsender = 'ProdigyTradeDHBW@gmail.com'
             password = 'zhkmuvnaykjhrhqd'
-            mail_receiver = 'jan@juergenberger.de'
+            mail_receiver = 'cedric.perrot@gmail.com'
 
             em = EmailMessage()
             em['From'] = mailsender
